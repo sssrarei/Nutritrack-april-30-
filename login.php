@@ -2,11 +2,11 @@
 session_start();
 include 'config/database.php';
 
-if(isset($_POST['login'])) {
+if(isset($_POST['login'])){
     $email = trim($_POST['email']);
     $password = trim($_POST['password']);
 
-    $sql = "SELECT * FROM users WHERE email='$email'";
+    $sql = "SELECT * FROM users WHERE email = '$email'";
     $result = $conn->query($sql);
 
     if($result && $result->num_rows > 0){
@@ -25,9 +25,11 @@ if(isset($_POST['login'])) {
             } elseif($user['role_id'] == 2){
                 header("Location: cdw/dashboard.php");
                 exit();
-            } else {
+            } elseif($user['role_id'] == 3){
                 header("Location: guardian/dashboard.php");
                 exit();
+            } else {
+                $error = "Invalid role.";
             }
         } else {
             $error = "Wrong password.";
@@ -40,14 +42,14 @@ if(isset($_POST['login'])) {
 
 <h2>Login</h2>
 
-<?php
-if(isset($error)){
-    echo "<p style='color:red;'>$error</p>";
-}
-?>
+<?php if(isset($error)){ ?>
+    <p style="color:red;"><?php echo $error; ?></p>
+<?php } ?>
 
 <form method="POST">
     Email: <input type="email" name="email" required><br><br>
     Password: <input type="password" name="password" required><br><br>
     <button type="submit" name="login">Login</button>
 </form>
+
+<p><a href="guardian/register.php">Register as Guardian</a></p>
