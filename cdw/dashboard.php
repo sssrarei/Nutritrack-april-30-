@@ -50,398 +50,487 @@ if(isset($_POST['switch_cdc'])){
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html>
 <head>
-    <title>CDW Dashboard</title>
+    <title>CDW Dashboard | NutriTrack</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+     <link rel="stylesheet" href="../assets/cdw-style.css">
     <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #f3f4f6;
+        *{
+            box-sizing:border-box;
+            margin:0;
+            padding:0;
         }
 
-        .topbar {
-            height: 66px;
-            background: #ffffff;
-            border-bottom: 1px solid #dcdcdc;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 20px;
+        body{
+            background:#eef0f3;
+            font-family:'Inter', sans-serif;
+            color:#333;
         }
 
-        .topbar-left {
-            display: flex;
-            align-items: center;
-            gap: 14px;
+        a{
+            text-decoration:none;
         }
 
-        .menu-btn {
-            font-size: 25px;
-            cursor: pointer;
-            border: none;
-            background: none;
+       
+       
+        
+
+        /* MAIN CONTENT */
+        .main-content{
+            margin-left:260px;
+            padding:112px 24px 30px;
+            transition:margin-left 0.25s ease;
         }
 
-        .logo {
-            height: 56px;
+        .main-content.full{
+            margin-left:0;
         }
 
-        .topbar-right {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            font-size: 13px;
+        .page-card{
+            background:#ffffff;
+            border:1px solid #dcdcdc;
+            border-radius:14px;
+            padding:24px;
+            margin-bottom:18px;
         }
 
-        .notif-link {
-            text-decoration: none;
-            color: #000;
-            display: flex;
-            align-items: center;
-            gap: 6px;
+        .error-msg{
+            color:#c62828;
+            font-size:13px;
+            margin-bottom:14px;
+            text-align:center;
         }
 
-        .logout-btn {
-            border: 1px solid #bbb;
-            background: #fff;
-            border-radius: 20px;
-            padding: 7px 16px;
-            cursor: pointer;
+        .cdc-switch-area{
+            text-align:center;
         }
 
-        .sidebar {
-            width: 260px;
-            background: #f7f7f7;
-            border-right: 1px solid #dcdcdc;
-            height: calc(100vh - 66px);
-            position: fixed;
-            top: 66px;
-            left: -260px;
-            overflow-y: auto;
-            transition: left 0.3s ease;
-            z-index: 1000;
+        .cdc-title{
+            font-family:'Poppins', sans-serif;
+            font-size:24px;
+            font-weight:700;
+            text-transform:uppercase;
+            color:#3a3a3a;
+            margin-bottom:14px;
         }
 
-        .sidebar.open {
-            left: 0;
+        .cdc-form{
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            gap:10px;
+            flex-wrap:wrap;
+            margin-bottom:10px;
         }
 
-        .sidebar-header {
-            padding: 18px 20px 10px 20px;
-            font-weight: bold;
-            font-size: 14px;
-            color: #444;
+        .cdc-form select{
+            min-width:280px;
+            padding:10px 12px;
+            border:1px solid #cfcfcf;
+            border-radius:8px;
+            font-family:'Inter', sans-serif;
+            font-size:13px;
+            background:#fff;
+            outline:none;
         }
 
-        .accordion-btn {
-            width: 100%;
-            background: none;
-            border: none;
-            text-align: left;
-            padding: 14px 20px;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            border-top: 1px solid #e2e2e2;
+        .cdc-form button{
+            padding:10px 16px;
+            border:none;
+            border-radius:8px;
+            background:#2e7d32;
+            color:#fff;
+            font-family:'Inter', sans-serif;
+            font-size:13px;
+            font-weight:600;
+            cursor:pointer;
         }
 
-        .accordion-content {
-            display: none;
-            padding: 0 0 8px 0;
-            background: #fafafa;
+        .active-cdc-text{
+            margin-top:4px;
+            font-size:12px;
+            color:#666;
         }
 
-        .accordion-content a {
-            display: block;
-            text-decoration: none;
-            color: #222;
-            font-size: 13px;
-            padding: 8px 28px;
+        .cards-grid{
+            display:grid;
+            grid-template-columns:repeat(5, 1fr);
+            gap:12px;
+            margin-top:22px;
         }
 
-        .accordion-content a:hover {
-            background: #ececec;
+        .card{
+            border:1.5px solid #b8b8b8;
+            background:#fff;
+            min-height:112px;
+            display:flex;
+            flex-direction:column;
+            border-radius:8px;
+            overflow:hidden;
         }
 
-        .main-content {
-            padding: 18px 24px 28px 24px;
+        .card-title{
+            min-height:52px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            text-align:center;
+            padding:8px 10px;
+            font-family:'Poppins', sans-serif;
+            font-size:16px;
+            line-height:1.2;
+            border-bottom:1.5px solid #b8b8b8;
         }
 
-        .cdc-switch-area {
-            text-align: center;
-            margin: 8px 0 18px 0;
+        .card-body{
+            flex:1;
+            background:#fff;
         }
 
-        .cdc-title {
-            font-size: 28px;
-            font-weight: bold;
-            margin-bottom: 8px;
-            text-transform: uppercase;
+        .title-normal{
+            color:#2e7d32;
+            background:#dfe8de;
         }
 
-        .cdc-form select,
-        .cdc-form button {
-            padding: 8px 10px;
-            font-size: 14px;
+        .title-alert{
+            color:#d12c24;
+            background:#efdfdc;
         }
 
-        .cards-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 10px;
-            margin-top: 20px;
+        .chart-section{
+            display:grid;
+            grid-template-columns:1fr 1fr;
+            gap:20px;
         }
 
-        .card {
-            border: 1px solid #bcbcbc;
-            background: #fff;
-            min-height: 82px;
+        .chart-box{
+            background:#fff;
+            border:1.5px solid #d0d0d0;
+            border-radius:12px;
+            min-height:325px;
+            padding:18px 16px 14px;
         }
 
-        .card-title {
-            color: #fff;
-            font-weight: bold;
-            font-size: 13px;
-            text-align: center;
-            padding: 10px 8px;
+        .chart-title{
+            font-family:'Poppins', sans-serif;
+            font-size:16px;
+            text-align:center;
+            color:#3d3d3d;
+            margin-bottom:18px;
         }
 
-        .card-body {
-            height: 40px;
-            background: #fff;
+        .fake-chart{
+            height:255px;
+            display:flex;
+            align-items:flex-end;
+            gap:12px;
+            padding:0 10px 0;
+            border-bottom:1px solid #dcdcdc;
         }
 
-        .bottom-section {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-top: 26px;
+        .fake-bar{
+            flex:1;
+            border-radius:4px 4px 0 0;
         }
 
-        .placeholder-box {
-            background: #fff;
-            border: 1px solid #bcbcbc;
-            min-height: 250px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #555;
-            font-weight: bold;
-            text-align: center;
-            padding: 20px;
+        .bar-green-1{ height:52%; background:#8acb99; }
+        .bar-green-2{ height:68%; background:#5ea96a; }
+        .bar-green-3{ height:86%; background:#5ca767; }
+        .bar-green-4{ height:48%; background:#8acb99; }
+        .bar-green-5{ height:56%; background:#9ac29f; }
+        .bar-green-6{ height:52%; background:#5ea96a; }
+        .bar-green-7{ height:63%; background:#5ca767; }
+        .bar-green-8{ height:60%; background:#a1c7a5; }
+
+        .bar-mix-1{ height:34%; background:#47b248; }
+        .bar-mix-2{ height:50%; background:#ddbbbb; }
+        .bar-mix-3{ height:63%; background:#ff3d3d; }
+        .bar-mix-4{ height:78%; background:#e5b8b8; }
+        .bar-mix-5{ height:46%; background:#ff3d3d; }
+        .bar-mix-6{ height:54%; background:#dcc0c0; }
+        .bar-mix-7{ height:48%; background:#ff3d3d; }
+        .bar-mix-8{ height:59%; background:#eb5656; }
+        .bar-mix-9{ height:55%; background:#ff3d3d; }
+
+        .chart-labels{
+            display:grid;
+            grid-template-columns:repeat(8, 1fr);
+            gap:12px;
+            margin-top:8px;
+            font-size:10px;
+            color:#555;
+            text-align:center;
         }
 
-        .error-msg {
-            color: red;
-            text-align: center;
-            margin-top: 8px;
+        .chart-labels.nutri{
+            grid-template-columns:repeat(9, 1fr);
         }
 
-        .active-cdc-text {
-            margin-top: 10px;
-            color: #333;
-            font-size: 14px;
+        @media (max-width: 1200px){
+            .cards-grid{
+                grid-template-columns:repeat(3, 1fr);
+            }
         }
 
-        @media (max-width: 1100px) {
-            .cards-grid {
-                grid-template-columns: repeat(2, 1fr);
+        @media (max-width: 991px){
+            .sidebar{
+                transform:translateX(-100%);
             }
 
-            .bottom-section {
-                grid-template-columns: 1fr;
+            .sidebar.open{
+                transform:translateX(0);
+            }
+
+            .sidebar-overlay.show{
+                display:block;
+                position:fixed;
+                top:88px;
+                left:0;
+                width:100%;
+                height:calc(100vh - 88px);
+                background:rgba(0,0,0,0.25);
+                z-index:1040;
+            }
+
+            .main-content{
+                margin-left:0;
+                padding:104px 16px 24px;
+            }
+
+            .topbar{
+                padding:0 12px;
+            }
+
+            .topbar-logo{
+                height:44px;
+            }
+
+            .user-chip{
+                display:none;
+            }
+
+            .chart-section{
+                grid-template-columns:1fr;
+            }
+
+            .cards-grid{
+                grid-template-columns:repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 600px){
+            .cards-grid{
+                grid-template-columns:1fr;
+            }
+
+            .cdc-title{
+                font-size:20px;
+            }
+
+            .chart-box{
+                min-height:280px;
+            }
+
+            .card-title{
+                font-size:14px;
             }
         }
     </style>
 </head>
 <body>
 
-<!-- TOPBAR -->
-<div class="topbar">
-    <div class="topbar-left">
-        <button class="menu-btn" onclick="toggleSidebar()">☰</button>
-        <a href="dashboard.php">
-            <img src="../NUTRITRACK-LOGO.svg" alt="NutriTrack Logo" class="logo">
-        </a>
-    </div>
+<?php include '../includes/cdw_topbar.php'; ?>
+<?php include '../includes/cdw_sidebar.php'; ?>
 
-    <div class="topbar-right">
-        <a href="notifications.php" class="notif-link">
-            <span>🔔</span>
-            <span>Notifications</span>
-        </a>
+<div class="main-content" id="mainContent">
 
-        <span>CDW - <?php echo htmlspecialchars($_SESSION['first_name']); ?></span>
+    <div class="page-card">
+        <?php if(!empty($error)){ ?>
+            <p class="error-msg"><?php echo $error; ?></p>
+        <?php } ?>
 
-        <a href="../logout.php">
-            <button class="logout-btn">Logout</button>
-        </a>
-    </div>
-</div>
-
-<!-- SIDEBAR -->
-<div class="sidebar" id="sidebar">
-    <div class="sidebar-header">MENU</div>
-
-    <button class="accordion-btn" onclick="toggleAccordion('pupilRecords')">Pupil Records</button>
-    <div class="accordion-content" id="pupilRecords">
-        <a href="child_list.php">Child Profile / Add Pupil</a>
-        <a href="#">Input Height, Weight and MUAC</a>
-        <a href="#">Feeding</a>
-        <a href="#">Milk Feeding</a>
-        <a href="#">Deworming</a>
-    </div>
-
-    <button class="accordion-btn" onclick="toggleAccordion('reportsMenu')">Reports</button>
-    <div class="accordion-content" id="reportsMenu">
-        <a href="#">WMR</a>
-        <a href="#">Masterlist of Beneficiaries</a>
-        <a href="#">Feeding Attendance</a>
-        <a href="#">Nutritional Status Summary</a>
-        <a href="#">Terminal Report</a>
-    </div>
-
-    <button class="accordion-btn" onclick="toggleAccordion('settingsMenu')">Settings</button>
-    <div class="accordion-content" id="settingsMenu">
-        <a href="#">Profile Information</a>
-        <a href="#">Change Password</a>
-    </div>
-</div>
-
-<!-- MAIN CONTENT -->
-<div class="main-content">
-
-    <?php if(!empty($error)){ ?>
-        <p class="error-msg"><?php echo $error; ?></p>
-    <?php } ?>
-
-    <div class="cdc-switch-area">
-        <div class="cdc-title">
-            <?php
-            if(isset($_SESSION['active_cdc_name']) && !empty($_SESSION['active_cdc_name'])){
-                echo htmlspecialchars($_SESSION['active_cdc_name']);
-            } else {
-                echo "NO ACTIVE CDC";
-            }
-            ?>
-        </div>
-
-        <form method="POST" class="cdc-form">
-            <select name="cdc_id" required>
-                <option value="">Select CDC</option>
+        <div class="cdc-switch-area">
+            <div class="cdc-title">
                 <?php
-                if($cdc_result && $cdc_result->num_rows > 0){
-                    while($cdc = $cdc_result->fetch_assoc()){
-                ?>
-                    <option value="<?php echo $cdc['cdc_id']; ?>"
-                        <?php
-                        if(isset($_SESSION['active_cdc_id']) && $_SESSION['active_cdc_id'] == $cdc['cdc_id']){
-                            echo "selected";
-                        }
-                        ?>>
-                        <?php echo htmlspecialchars($cdc['cdc_name'] . " - " . $cdc['barangay']); ?>
-                    </option>
-                <?php
-                    }
-                }
-                ?>
-            </select>
-            <button type="submit" name="switch_cdc">Switch</button>
-        </form>
-
-        <?php if(isset($_SESSION['active_cdc_name'])){ ?>
-            <div class="active-cdc-text">
-                Active CDC:
-                <?php echo htmlspecialchars($_SESSION['active_cdc_name']); ?>
-                <?php
-                if(isset($_SESSION['active_cdc_barangay']) && !empty($_SESSION['active_cdc_barangay'])){
-                    echo " - " . htmlspecialchars($_SESSION['active_cdc_barangay']);
+                if(isset($_SESSION['active_cdc_name']) && !empty($_SESSION['active_cdc_name'])){
+                    echo htmlspecialchars($_SESSION['active_cdc_name']);
+                } else {
+                    echo "NO ACTIVE CDC";
                 }
                 ?>
             </div>
-        <?php } ?>
-    </div>
 
-    <div class="cards-grid">
-        <div class="card">
-            <div class="card-title" style="background:#3498db;">Total no. of Child Enrolled in Child Development Center</div>
-            <div class="card-body"></div>
-        </div>
+            <form method="POST" class="cdc-form">
+                <select name="cdc_id" required>
+                    <option value="">Select CDC</option>
+                    <?php
+                    if($cdc_result && $cdc_result->num_rows > 0){
+                        while($cdc = $cdc_result->fetch_assoc()){
+                    ?>
+                        <option value="<?php echo $cdc['cdc_id']; ?>"
+                            <?php
+                            if(isset($_SESSION['active_cdc_id']) && $_SESSION['active_cdc_id'] == $cdc['cdc_id']){
+                                echo "selected";
+                            }
+                            ?>>
+                            <?php echo htmlspecialchars($cdc['cdc_name'] . " - " . $cdc['barangay']); ?>
+                        </option>
+                    <?php
+                        }
+                    }
+                    ?>
+                </select>
+                <button type="submit" name="switch_cdc">Switch</button>
+            </form>
 
-        <div class="card">
-            <div class="card-title" style="background:#4caf50;">Normal</div>
-            <div class="card-body"></div>
-        </div>
-
-        <div class="card">
-            <div class="card-title" style="background:#e74c3c;">Underweight</div>
-            <div class="card-body"></div>
-        </div>
-
-        <div class="card">
-            <div class="card-title" style="background:#8b0000;">Severely Underweight</div>
-            <div class="card-body"></div>
-        </div>
-
-        <div class="card">
-            <div class="card-title" style="background:#f39c12;">Overweight</div>
-            <div class="card-body"></div>
-        </div>
-
-        <div class="card">
-            <div class="card-title" style="background:#c0392b;">Obese</div>
-            <div class="card-body"></div>
-        </div>
-
-        <div class="card">
-            <div class="card-title" style="background:#9b59b6;">Stunted</div>
-            <div class="card-body"></div>
-        </div>
-
-        <div class="card">
-            <div class="card-title" style="background:#6c3483;">Severely Stunted</div>
-            <div class="card-body"></div>
-        </div>
-
-        <div class="card">
-            <div class="card-title" style="background:#f1c40f; color:#fff;">Moderately Wasted</div>
-            <div class="card-body"></div>
-        </div>
-
-        <div class="card">
-            <div class="card-title" style="background:#b7950b;">Severely Wasted</div>
-            <div class="card-body"></div>
+            <?php if(isset($_SESSION['active_cdc_name'])){ ?>
+                <div class="active-cdc-text">
+                    Active CDC:
+                    <?php echo htmlspecialchars($_SESSION['active_cdc_name']); ?>
+                    <?php
+                    if(isset($_SESSION['active_cdc_barangay']) && !empty($_SESSION['active_cdc_barangay'])){
+                        echo " - " . htmlspecialchars($_SESSION['active_cdc_barangay']);
+                    }
+                    ?>
+                </div>
+            <?php } ?>
         </div>
     </div>
 
-    <div class="bottom-section">
-        <div class="placeholder-box">
-            Food pyramid / nutrition guide placeholder
+    <div class="page-card">
+        <div class="cards-grid">
+            <div class="card">
+                <div class="card-title title-normal">Normal</div>
+                <div class="card-body"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-title title-alert">Underweight</div>
+                <div class="card-body"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-title title-alert">Severely Underweight</div>
+                <div class="card-body"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-title title-alert">Overweight</div>
+                <div class="card-body"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-title title-alert">Obese</div>
+                <div class="card-body"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-title title-alert">Stunted</div>
+                <div class="card-body"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-title title-alert">Severely Stunted</div>
+                <div class="card-body"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-title title-alert">Moderately Wasted</div>
+                <div class="card-body"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-title title-alert">Severely Wasted</div>
+                <div class="card-body"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="chart-section">
+        <div class="chart-box">
+            <div class="chart-title">
+                Summary of Food Group Consumption
+                <?php echo isset($_SESSION['active_cdc_name']) ? htmlspecialchars(strtoupper($_SESSION['active_cdc_name'])) : ''; ?>
+            </div>
+
+            <div class="fake-chart">
+                <div class="fake-bar bar-green-1"></div>
+                <div class="fake-bar bar-green-2"></div>
+                <div class="fake-bar bar-green-3"></div>
+                <div class="fake-bar bar-green-4"></div>
+                <div class="fake-bar bar-green-5"></div>
+                <div class="fake-bar bar-green-6"></div>
+                <div class="fake-bar bar-green-7"></div>
+                <div class="fake-bar bar-green-8"></div>
+            </div>
+
+            <div class="chart-labels">
+                <div>Sugar/Sweets</div>
+                <div>Fish/Shellfish/Meat</div>
+                <div>Milk Products</div>
+                <div>Eggs/Beans</div>
+                <div>Vegetables</div>
+                <div>Fruits</div>
+                <div>Rice/Corn/Root Crops</div>
+                <div>Fats/Oils</div>
+            </div>
         </div>
 
-        <div class="placeholder-box">
-            Graph placeholder
+        <div class="chart-box">
+            <div class="chart-title">
+                Graphical Representation of the Nutritional Status of Children
+                <?php echo isset($_SESSION['active_cdc_name']) ? htmlspecialchars(strtoupper($_SESSION['active_cdc_name'])) : ''; ?>
+            </div>
+
+            <div class="fake-chart">
+                <div class="fake-bar bar-mix-1"></div>
+                <div class="fake-bar bar-mix-2"></div>
+                <div class="fake-bar bar-mix-3"></div>
+                <div class="fake-bar bar-mix-4"></div>
+                <div class="fake-bar bar-mix-5"></div>
+                <div class="fake-bar bar-mix-6"></div>
+                <div class="fake-bar bar-mix-7"></div>
+                <div class="fake-bar bar-mix-8"></div>
+                <div class="fake-bar bar-mix-9"></div>
+            </div>
+
+            <div class="chart-labels nutri">
+                <div>Normal</div>
+                <div>Underweight</div>
+                <div>Severely Underweight</div>
+                <div>Overweight</div>
+                <div>Obese</div>
+                <div>Stunted</div>
+                <div>Severely Stunted</div>
+                <div>Moderately Wasted</div>
+                <div>Severely Wasted</div>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
-    function toggleSidebar() {
-        document.getElementById("sidebar").classList.toggle("open");
-    }
+function toggleSidebar() {
+    var sidebar = document.getElementById('sidebar');
+    var overlay = document.getElementById('sidebarOverlay');
+    var mainContent = document.getElementById('mainContent');
 
-    function toggleAccordion(id) {
-        var content = document.getElementById(id);
-
-        if (content.style.display === "block") {
-            content.style.display = "none";
-        } else {
-            content.style.display = "block";
-        }
+    if (window.innerWidth <= 991) {
+        sidebar.classList.toggle('open');
+        overlay.classList.toggle('show');
+    } else {
+        sidebar.classList.toggle('closed');
+        mainContent.classList.toggle('full');
     }
+}
+
+function closeSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebarOverlay').classList.remove('show');
+}
 </script>
 
 </body>

@@ -1,0 +1,516 @@
+.page-wrapper{
+    width:100%;
+}
+
+.page-header{
+    margin-bottom:18px;
+}
+
+.back-link{
+    display:inline-block;
+    margin-bottom:10px;
+    font-size:13px;
+    font-weight:600;
+    color:#2E7D32;
+}
+
+.page-title{
+    font-family:'Poppins', sans-serif;
+    font-size:28px;
+    font-weight:700;
+    color:#2f2f2f;
+    margin-bottom:6px;
+}
+
+.page-subtitle{
+    font-size:14px;
+    color:#666;
+    line-height:1.5;
+}
+
+.cdc-banner{
+    background:#ffffff;
+    border:1px solid #dcdcdc;
+    border-radius:14px;
+    padding:20px 24px;
+    margin-bottom:18px;
+    text-align:center;
+}
+
+.cdc-banner-title{
+    font-family:'Poppins', sans-serif;
+    font-size:22px;
+    font-weight:700;
+    color:#3a3a3a;
+    text-transform:uppercase;
+}
+
+.cdc-banner-subtitle{
+    margin-top:6px;
+    font-size:13px;
+    color:#666;
+}
+
+.content-card{
+    background:#ffffff;
+    border:1px solid #dcdcdc;
+    border-radius:14px;
+    margin-bottom:18px;
+    overflow:hidden;
+}
+
+.card-header{
+    padding:18px 22px;
+    border-bottom:1px solid #e5e7eb;
+    font-family:'Poppins', sans-serif;
+    font-size:18px;
+    font-weight:700;
+    color:#2f2f2f;
+    background:#fff;
+}
+
+.card-body{
+    padding:22px;
+}
+
+.card-note{
+    font-size:13px;
+    color:#666;
+    margin-bottom:16px;
+    line-height:1.5;
+}
+
+.message{
+    padding:14px 16px;
+    border-radius:10px;
+    margin-bottom:16px;
+    font-size:14px;
+    font-weight:600;
+}
+
+.message.success{
+    background:#e8f5e9;
+    color:#2E7D32;
+    border:1px solid #c8e6c9;
+}
+
+.message.error{
+    background:#ffebee;
+    color:#c62828;
+    border:1px solid #ef9a9a;
+}
+
+.search-form{
+    display:flex;
+    gap:12px;
+    flex-wrap:wrap;
+    align-items:center;
+}
+
+.search-input,
+.date-input{
+    min-height:44px;
+    padding:10px 14px;
+    border:1px solid #cfcfcf;
+    border-radius:10px;
+    font-size:14px;
+    font-family:'Inter', sans-serif;
+    outline:none;
+    background:#fff;
+}
+
+.search-input{
+    flex:1;
+    min-width:220px;
+}
+
+.date-input{
+    min-width:180px;
+}
+
+.search-btn{
+    min-height:44px;
+    padding:0 18px;
+    border:none;
+    border-radius:10px;
+    background:#2E7D32;
+    color:#fff;
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+}
+
+.search-btn:hover{
+    background:#256628;
+}
+
+.form-group{
+    display:flex;
+    flex-direction:column;
+    gap:7px;
+}
+
+.form-label{
+    font-size:13px;
+    font-weight:600;
+    color:#444;
+}
+
+.form-control{
+    width:100%;
+    min-height:44px;
+    padding:10px 14px;
+    border:1px solid #cfcfcf;
+    border-radius:10px;
+    font-size:14px;
+    font-family:'Inter', sans-serif;
+    outline:none;
+    background:#fff;
+}
+
+.form-control:focus,
+.table-input:focus,
+.table-select:focus,
+.search-input:focus{
+    border-color:#2E7D32;
+    box-shadow:0 0 0 3px rgba(46,125,50,0.10);
+}
+
+.food-row{
+    display:grid;
+    grid-template-columns: 2fr 2fr 2fr 120px;
+    gap:14px;
+    padding:16px;
+    border:1px solid #e3e3e3;
+    border-radius:12px;
+    background:#fafafa;
+    margin-bottom:14px;
+}
+
+.remove-col{
+    align-self:end;
+}
+
+.remove-food-btn,
+.btn-secondary{
+    min-height:42px;
+    border:none;
+    border-radius:10px;
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+}
+
+.remove-food-btn{
+    background:#e53935;
+    color:#fff;
+    padding:0 14px;
+}
+
+.remove-food-btn:hover{
+    background:#c62828;
+}
+
+.food-actions{
+    margin-top:4px;
+}
+
+.btn-secondary{
+    background:#edf5ee;
+    color:#2E7D32;
+    border:1px solid #cfe3d1;
+    padding:0 16px;
+}
+
+.btn-secondary:hover{
+    background:#e2efe4;
+}
+
+.summary-box{
+    margin-top:20px;
+    padding:18px;
+    border:1px solid #d9e5db;
+    border-radius:12px;
+    background:#f7fbf7;
+}
+
+.summary-title{
+    font-family:'Poppins', sans-serif;
+    font-size:16px;
+    font-weight:700;
+    color:#2f2f2f;
+    margin-bottom:10px;
+}
+
+.summary-preview{
+    font-size:14px;
+    color:#444;
+    line-height:1.7;
+}
+
+.preview-list{
+    padding-left:18px;
+    margin:0;
+}
+
+.preview-list li{
+    margin-bottom:6px;
+}
+
+.pupil-feed-list{
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+}
+
+.pupil-feed-card{
+    border:1px solid #e5e7eb;
+    border-radius:12px;
+    padding:18px;
+    background:#fafafa;
+}
+
+.pupil-feed-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:14px;
+    margin-bottom:16px;
+}
+
+.pupil-feed-name{
+    font-family:'Poppins', sans-serif;
+    font-size:16px;
+    font-weight:700;
+    color:#2f2f2f;
+}
+
+.pupil-feed-meta{
+    margin-top:4px;
+    font-size:13px;
+    color:#666;
+}
+
+.attendance-wrap{
+    min-width:160px;
+}
+
+.small-label{
+    display:block;
+    font-size:12px;
+    font-weight:700;
+    color:#555;
+    margin-bottom:6px;
+}
+
+.meal-inputs-block{
+    margin-bottom:16px;
+}
+
+.meal-inputs-title{
+    font-size:13px;
+    font-weight:700;
+    color:#444;
+    margin-bottom:10px;
+}
+
+.meal-inputs-grid{
+    display:grid;
+    grid-template-columns:repeat(2, minmax(220px, 1fr));
+    gap:12px;
+}
+
+.meal-measurement-item{
+    background:#fff;
+    border:1px solid #e5e7eb;
+    border-radius:10px;
+    padding:12px;
+}
+
+.no-meal-items{
+    font-size:13px;
+    color:#777;
+    padding:10px 0;
+}
+
+.remarks-block{
+    margin-top:4px;
+}
+
+.table-input,
+.table-select{
+    width:100%;
+    min-height:40px;
+    padding:8px 10px;
+    border:1px solid #cfcfcf;
+    border-radius:8px;
+    font-size:14px;
+    font-family:'Inter', sans-serif;
+    outline:none;
+    background:#fff;
+}
+
+.form-actions{
+    margin-top:18px;
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+}
+
+.btn-save{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-width:160px;
+    min-height:44px;
+    padding:0 18px;
+    border:none;
+    border-radius:10px;
+    background:#2E7D32;
+    color:#fff;
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+}
+
+.btn-save:hover{
+    background:#256628;
+}
+
+.no-records{
+    font-size:14px;
+    color:#666;
+    text-align:center;
+    padding:18px 0;
+}
+
+.status-badge{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-width:88px;
+    padding:8px 12px;
+    border-radius:999px;
+    font-size:12px;
+    font-weight:700;
+}
+
+.status-badge.present{
+    background:#e8f5e9;
+    color:#2E7D32;
+}
+
+.status-badge.absent{
+    background:#ffebee;
+    color:#c62828;
+}
+
+.recent-records-list{
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+}
+
+.recent-record-card{
+    border:1px solid #e5e7eb;
+    border-radius:12px;
+    padding:18px;
+    background:#fafafa;
+}
+
+.recent-record-top{
+    display:flex;
+    justify-content:space-between;
+    gap:12px;
+    align-items:flex-start;
+    margin-bottom:14px;
+}
+
+.recent-record-name{
+    font-family:'Poppins', sans-serif;
+    font-size:16px;
+    font-weight:700;
+    color:#2f2f2f;
+}
+
+.recent-record-date{
+    font-size:13px;
+    color:#666;
+    margin-top:4px;
+}
+
+.recent-record-section{
+    margin-top:12px;
+}
+
+.recent-section-title{
+    font-size:13px;
+    font-weight:700;
+    color:#444;
+    margin-bottom:8px;
+}
+
+.summary-list{
+    margin:0;
+    padding-left:18px;
+    color:#444;
+    line-height:1.7;
+    font-size:14px;
+}
+
+.summary-list li{
+    margin-bottom:4px;
+}
+
+.no-summary,
+.remarks-text{
+    font-size:14px;
+    color:#555;
+    line-height:1.6;
+}
+
+@media (max-width: 991px){
+    .food-row{
+        grid-template-columns:1fr;
+    }
+
+    .card-body{
+        padding:18px;
+    }
+
+    .page-title{
+        font-size:24px;
+    }
+
+    .recent-record-top,
+    .pupil-feed-top{
+        flex-direction:column;
+        align-items:flex-start;
+    }
+
+    .meal-inputs-grid{
+        grid-template-columns:1fr;
+    }
+}
+
+@media (max-width: 600px){
+    .cdc-banner-title{
+        font-size:18px;
+    }
+
+    .page-title{
+        font-size:22px;
+    }
+
+    .search-form{
+        flex-direction:column;
+        align-items:stretch;
+    }
+
+    .search-btn,
+    .btn-save,
+    .btn-secondary,
+    .remove-food-btn{
+        width:100%;
+    }
+}

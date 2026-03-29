@@ -1,0 +1,656 @@
+<?php
+include '../includes/auth.php';
+include '../config/database.php';
+include '../includes/nnc_growth_standards.php';
+
+if($_SESSION['role_id'] != 2){
+    header("Location: ../login.php");
+    exit();
+}
+
+if(!isset($_SESSION['active_cdc_id'])){
+    die("Please select an active CDC first from the dashboard.");
+}
+
+$active_cdc_id = (int) $_SESSION['active_cdc_id'];
+$user_id = (int) $_SESSION['user_id'];
+$search = isset($_GET['search']) ? trim($_GET['search']) : '';
+$child_id = isset($_GET['child_id']) ? (int) $_GET['child_id'] : 0;
+$edit_id = isset($_GET['edit_id']) ? (int) $_GET['edit_id'] : 0;
+
+$success = "";
+$error = "";
+
+$form_date_recorded = '';
+$form_height = '';
+$form_weight = '';
+$form_muac = '';
+$form_place_of_measurement = '';
+
+/* =========================================================
+   HELPERS
+========================================================= */
+function compute_age_months_exact($birthdate, $date_recorded){
+    if(empty($birthdate) || empty($date_recorded)) return null;
+
+    try{
+        $birth = new DateTime($birthdate);
+        $record = new DateTime($date_recorded);
+
+        if($record < $birth){
+            return null;
+        }
+
+        $diff = $birth->diff($record);
+        return ($diff->y * 12) + $diff->m;
+    } catch(Exception $e){
+        return null;
+    }
+}
+
+function compute_age_label($birthdate){
+    if(empty($birthdate) || $birthdate == '0000-00-00'){
+        return 'N/A';
+    }
+
+    try{
+        $birth = new DateTime($birthdate);
+        $today = new DateTime();
+        $diff = $birth->diff($today);
+        return $diff->y . " year(s) old";
+    } catch(Exception $e){
+        return 'N/A';
+    }
+}
+
+function status_badge($status){
+    if(empty($status) || $status == '--'){
+        return '<span class="status-badge status-empty">--</span>';
+    }
+
+    $normalized = strtolower(trim($status));
+
+    if($normalized === 'normal'){
+        return '<span class="status-badge status-normal">' . htmlspecialchars($status) . '</span>';
+    }
+
+    return '<span class="status-badge status-alert">' . htmlspecialchars($status) . '</span>';
+}
+
+/* =========================================================
+   SAVE / UPDATE RECORD
+========================================================= */
+if(isset($_POST['save_record'])){
+    $child_id_post = isset($_POST['child_id']) ? (int) $_POST['child_id'] : 0;
+    $edit_record_id = isset($_POST['edit_record_id']) ? (int) $_POST['edit_record_id'] : 0;
+
+    $date_recorded = trim($_POST['date_recorded']);
+    $height = trim($_POST['height']);
+    $weight = trim($_POST['weight']);
+    $muac = trim($_POST['muac']);
+    $place_of_measurement = trim($_POST['place_of_measurement']);
+
+    $form_date_recorded = $date_recorded;
+    $form_height = $height;
+    $form_weight = $weight;
+    $form_muac = $muac;
+    $form_place_of_measurement = $place_of_measurement;
+
+    $child_stmt = $conn->prepare("
+        SELECT child_id, birthdate, sex, cdc_id
+        FROM children
+        WHERE child_id = ? AND cdc_id = ?
+        LIMIT 1
+    ");
+    $child_stmt->bind_param("ii", $child_id_post, $active_cdc_id);
+    $child_stmt->execute();
+    $child_result = $child_stmt->get_result();
+
+    if($child_result->num_rows == 0){
+        $error = "Invalid child selected.";
+    } elseif(empty($date_recorded) || $height === '' || $weight === '' || $muac === '' || $place_of_measurement === ''){
+        $error = "Please complete all required fields.";
+    } elseif(!is_numeric($height) || !is_numeric($weight) || !is_numeric($muac)){
+        $error = "Height, weight, and MUAC must be numeric values.";
+    } elseif((float)$height <= 0 || (float)$weight <= 0 || (float)$muac <= 0){
+        $error = "Height, weight, and MUAC must be greater than zero.";
+    } else {
+        $child = $child_result->fetch_assoc();
+        $sex = trim($child['sex']);
+        $birthdate = $child['birthdate'];
+
+        $age_months = compute_age_months_exact($birthdate, $date_recorded);
+
+        if($age_months === null){
+            $error = "Unable to compute age in months.";
+        } else {
+            $height_val = (float)$height;
+            $weight_val = (float)$weight;
+            $muac_val = (float)$muac;
+
+            $wfa_status = nnc_get_wfa_status($conn, $sex, $age_months, $weight_val);
+            $hfa_status = nnc_get_hfa_status($conn, $sex, $age_months, $height_val);
+            $wflh_status = nnc_get_wflh_status($conn, $sex, $age_months, $height_val, $weight_val);
+
+            if($edit_record_id > 0){
+                $check_edit_stmt = $conn->prepare("
+                    SELECT ar.record_id
+                    FROM anthropometric_records ar
+                    INNER JOIN children c ON ar.child_id = c.child_id
+                    WHERE ar.record_id = ? AND ar.child_id = ? AND c.cdc_id = ?
+                    LIMIT 1
+                ");
+                $check_edit_stmt->bind_param("iii", $edit_record_id, $child_id_post, $active_cdc_id);
+                $check_edit_stmt->execute();
+                $check_edit_result = $check_edit_stmt->get_result();
+
+                if($check_edit_result->num_rows == 0){
+                    $error = "Invalid record selected for editing.";
+                } else {
+                    $update_stmt = $conn->prepare("
+                        UPDATE anthropometric_records
+                        SET height = ?, weight = ?, muac = ?, date_recorded = ?, age_months = ?, place_of_measurement = ?, wfa_status = ?, hfa_status = ?, wflh_status = ?, recorded_by = ?
+                        WHERE record_id = ? AND child_id = ?
+                    ");
+
+                    $update_stmt->bind_param(
+                        "dddsissssiii",
+                        $height_val,
+                        $weight_val,
+                        $muac_val,
+                        $date_recorded,
+                        $age_months,
+                        $place_of_measurement,
+                        $wfa_status,
+                        $hfa_status,
+                        $wflh_status,
+                        $user_id,
+                        $edit_record_id,
+                        $child_id_post
+                    );
+
+                    if($update_stmt->execute()){
+                        $success = "Anthropometric record updated successfully.";
+                        $child_id = $child_id_post;
+                        $edit_id = 0;
+                        $form_date_recorded = '';
+                        $form_height = '';
+                        $form_weight = '';
+                        $form_muac = '';
+                        $form_place_of_measurement = '';
+                    } else {
+                        $error = "Error updating record: " . $conn->error;
+                        $child_id = $child_id_post;
+                        $edit_id = $edit_record_id;
+                    }
+                }
+            } else {
+                $insert_stmt = $conn->prepare("
+                    INSERT INTO anthropometric_records
+                    (child_id, height, weight, muac, date_recorded, age_months, place_of_measurement, wfa_status, hfa_status, wflh_status, recorded_by)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ");
+
+                $insert_stmt->bind_param(
+                    "idddsissssi",
+                    $child_id_post,
+                    $height_val,
+                    $weight_val,
+                    $muac_val,
+                    $date_recorded,
+                    $age_months,
+                    $place_of_measurement,
+                    $wfa_status,
+                    $hfa_status,
+                    $wflh_status,
+                    $user_id
+                );
+
+                if($insert_stmt->execute()){
+                    $success = "Anthropometric record saved successfully.";
+                    $child_id = $child_id_post;
+                    $form_date_recorded = '';
+                    $form_height = '';
+                    $form_weight = '';
+                    $form_muac = '';
+                    $form_place_of_measurement = '';
+                } else {
+                    $error = "Error saving record: " . $conn->error;
+                    $child_id = $child_id_post;
+                }
+            }
+        }
+    }
+}
+
+/* =========================================================
+   SEARCH MODE
+========================================================= */
+$search_results = null;
+
+if($child_id <= 0){
+    $sql = "SELECT child_id, first_name, middle_name, last_name
+            FROM children
+            WHERE cdc_id = ?";
+
+    if($search !== ""){
+        $sql .= " AND (
+            first_name LIKE ? OR
+            middle_name LIKE ? OR
+            last_name LIKE ?
+        )";
+    }
+
+    $sql .= " ORDER BY first_name ASC, last_name ASC";
+
+    $stmt = $conn->prepare($sql);
+
+    if($search !== ""){
+        $search_param = "%" . $search . "%";
+        $stmt->bind_param("isss", $active_cdc_id, $search_param, $search_param, $search_param);
+    } else {
+        $stmt->bind_param("i", $active_cdc_id);
+    }
+
+    $stmt->execute();
+    $search_results = $stmt->get_result();
+}
+
+/* =========================================================
+   CHILD DETAIL MODE
+========================================================= */
+$child_data = null;
+$records = null;
+
+if($child_id > 0){
+    $child_stmt = $conn->prepare("
+        SELECT children.*, cdc.cdc_name
+        FROM children
+        INNER JOIN cdc ON children.cdc_id = cdc.cdc_id
+        WHERE children.child_id = ? AND children.cdc_id = ?
+        LIMIT 1
+    ");
+    $child_stmt->bind_param("ii", $child_id, $active_cdc_id);
+    $child_stmt->execute();
+    $child_result = $child_stmt->get_result();
+
+    if($child_result->num_rows == 0){
+        die("Child not found or not assigned to the active CDC.");
+    }
+
+    $child_data = $child_result->fetch_assoc();
+
+    if($edit_id > 0){
+        $edit_stmt = $conn->prepare("
+            SELECT ar.*
+            FROM anthropometric_records ar
+            WHERE ar.record_id = ? AND ar.child_id = ?
+            LIMIT 1
+        ");
+        $edit_stmt->bind_param("ii", $edit_id, $child_id);
+        $edit_stmt->execute();
+        $edit_result = $edit_stmt->get_result();
+
+        if($edit_result && $edit_result->num_rows > 0){
+            $edit_data = $edit_result->fetch_assoc();
+            $form_date_recorded = $edit_data['date_recorded'];
+            $form_height = $edit_data['height'];
+            $form_weight = $edit_data['weight'];
+            $form_muac = $edit_data['muac'];
+            $form_place_of_measurement = $edit_data['place_of_measurement'];
+        } else {
+            $edit_id = 0;
+        }
+    }
+
+    $records_stmt = $conn->prepare("
+        SELECT ar.*, u.first_name AS recorded_first_name, u.last_name AS recorded_last_name
+        FROM anthropometric_records ar
+        LEFT JOIN users u ON ar.recorded_by = u.user_id
+        WHERE ar.child_id = ?
+        ORDER BY ar.date_recorded DESC, ar.record_id DESC
+    ");
+    $records_stmt->bind_param("i", $child_id);
+    $records_stmt->execute();
+    $records = $records_stmt->get_result();
+}
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Input Height, Weight and MUAC | NutriTrack</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/cdw-style.css">
+    <link rel="stylesheet" href="../assets/anthropometric.css">
+
+    <style>
+        .measurements-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        .measurements-table th,
+        .measurements-table td {
+            padding: 16px 14px;
+            vertical-align: middle;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 15px;
+        }
+
+        .measurements-table th {
+            font-weight: 700;
+            color: #222;
+            background: #fff;
+            text-align: left;
+        }
+
+        .measurements-table .col-date {
+            width: 90px;
+        }
+
+        .measurements-table .col-age {
+            width: 105px;
+            text-align: center;
+        }
+
+        .measurements-table .col-height,
+        .measurements-table .col-weight,
+        .measurements-table .col-muac {
+            width: 105px;
+            text-align: center;
+        }
+
+        .measurements-table .col-wfa,
+        .measurements-table .col-hfa,
+        .measurements-table .col-wflh {
+            width: 145px;
+            text-align: center;
+        }
+
+        .measurements-table .col-recorded-by {
+            width: 120px;
+            text-align: center;
+        }
+
+        .measurements-table .col-action {
+            width: 120px;
+            text-align: center;
+        }
+
+        .measurements-table td.center-cell,
+        .measurements-table th.center-cell {
+            text-align: center;
+        }
+
+        .measurements-table td.date-cell {
+            line-height: 1.2;
+        }
+
+        .measurements-table td.unit-cell {
+            line-height: 1.25;
+        }
+
+        .measurements-table td.recorded-by-cell {
+            text-align: center;
+            line-height: 1.25;
+        }
+
+        .measurements-table td.action-cell {
+            text-align: center;
+        }
+
+        .edit-btn-table {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 92px;
+            padding: 10px 18px;
+            border-radius: 10px;
+            background: #2e7d32;
+            color: #fff;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            transition: 0.2s ease;
+        }
+
+        .edit-btn-table:hover {
+            background: #256628;
+        }
+
+        .status-cell {
+            text-align: center;
+        }
+
+        .status-cell .status-badge {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            min-width: 120px;
+            padding: 10px 14px;
+            text-align: center;
+            border-radius: 8px;
+        }
+
+        @media (max-width: 1200px) {
+            .measurements-table {
+                min-width: 1100px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<?php include '../includes/cdw_topbar.php'; ?>
+<?php include '../includes/cdw_sidebar.php'; ?>
+
+<div class="main-content" id="mainContent">
+    <div class="page-wrapper">
+
+        <?php if($child_id <= 0){ ?>
+
+            <div class="page-header">
+                <a href="dashboard.php" class="back-link">← Back to Dashboard</a>
+                <h1 class="page-title">Input Height, Weight and MUAC</h1>
+                <div class="page-subtitle">
+                    Search pupils under your active CDC first before recording anthropometric measurements.
+                </div>
+            </div>
+
+            <?php if(!empty($success)){ ?>
+                <div class="message success"><?php echo htmlspecialchars($success); ?></div>
+            <?php } ?>
+
+            <?php if(!empty($error)){ ?>
+                <div class="message error"><?php echo htmlspecialchars($error); ?></div>
+            <?php } ?>
+
+            <div class="search-card">
+                <div class="search-card-title">Search Pupils</div>
+
+                <form method="GET" class="search-form">
+                    <input
+                        type="text"
+                        name="search"
+                        class="search-input"
+                        placeholder="Search Pupils"
+                        value="<?php echo htmlspecialchars($search); ?>"
+                    >
+                    <button type="submit" class="search-btn">Search</button>
+                </form>
+
+                <div class="list-label">Pupils List</div>
+
+                <div class="pupil-list">
+                    <?php if($search_results && $search_results->num_rows > 0){ ?>
+                        <?php while($row = $search_results->fetch_assoc()){
+                            $full_name = trim(
+                                $row['first_name'] . ' ' .
+                                (!empty($row['middle_name']) ? $row['middle_name'] . ' ' : '') .
+                                $row['last_name']
+                            );
+                        ?>
+                            <div class="pupil-item">
+                                <div class="pupil-name"><?php echo htmlspecialchars($full_name); ?></div>
+                                <a href="anthropometric_records.php?child_id=<?php echo $row['child_id']; ?>" class="open-btn">
+                                    Open Input Height, Weight and MUAC
+                                </a>
+                            </div>
+                        <?php } ?>
+                    <?php } else { ?>
+                        <div class="empty-state">No pupils found under the selected CDC.</div>
+                    <?php } ?>
+                </div>
+            </div>
+
+        <?php } else { ?>
+
+            <?php
+                $child_full_name = trim(
+                    $child_data['first_name'] . ' ' .
+                    (!empty($child_data['middle_name']) ? $child_data['middle_name'] . ' ' : '') .
+                    $child_data['last_name']
+                );
+                $age_now = compute_age_label($child_data['birthdate']);
+            ?>
+
+            <div class="page-header">
+                <a href="anthropometric_records.php" class="back-link">← Back to Search Pupils</a>
+                <h1 class="page-title">Input Height, Weight and MUAC</h1>
+                <div class="page-subtitle">
+                    Record anthropometric measurements and view previous measurement history.
+                </div>
+            </div>
+
+            <?php if(!empty($success)){ ?>
+                <div class="message success"><?php echo htmlspecialchars($success); ?></div>
+            <?php } ?>
+
+            <?php if(!empty($error)){ ?>
+                <div class="message error"><?php echo htmlspecialchars($error); ?></div>
+            <?php } ?>
+
+            <div class="child-summary">
+                <div class="summary-item"><strong>Child Name:</strong> <?php echo htmlspecialchars(strtoupper($child_full_name)); ?></div>
+                <div class="summary-item"><strong>Birthdate:</strong> <?php echo date("F d, Y", strtotime($child_data['birthdate'])); ?></div>
+                <div class="summary-item"><strong>Age:</strong> <?php echo htmlspecialchars($age_now); ?></div>
+                <div class="summary-item"><strong>CDC:</strong> <?php echo htmlspecialchars($child_data['cdc_name']); ?></div>
+            </div>
+
+            <div class="content-card">
+                <div class="card-header">
+                    <?php echo $edit_id > 0 ? 'Edit Height, Weight and MUAC' : 'Input Height, Weight and MUAC'; ?>
+                </div>
+                <div class="card-body">
+                    <form method="POST" class="measurement-form">
+                        <input type="hidden" name="child_id" value="<?php echo $child_id; ?>">
+                        <input type="hidden" name="edit_record_id" value="<?php echo $edit_id; ?>">
+
+                        <div class="form-grid">
+                            <label class="form-label">Date Measured:</label>
+                            <input type="date" name="date_recorded" class="form-control" value="<?php echo htmlspecialchars($form_date_recorded); ?>" required>
+
+                            <label class="form-label">Height (cm):</label>
+                            <input type="number" step="0.01" name="height" class="form-control" value="<?php echo htmlspecialchars($form_height); ?>" required>
+
+                            <label class="form-label">Weight (kg):</label>
+                            <input type="number" step="0.01" name="weight" class="form-control" value="<?php echo htmlspecialchars($form_weight); ?>" required>
+
+                            <label class="form-label">MUAC (cm):</label>
+                            <input type="number" step="0.01" name="muac" class="form-control" value="<?php echo htmlspecialchars($form_muac); ?>" required>
+
+                            <label class="form-label">Place of Measurement:</label>
+                            <input type="text" name="place_of_measurement" class="form-control" value="<?php echo htmlspecialchars($form_place_of_measurement); ?>" required>
+
+                            <label class="form-label">Recorded By:</label>
+                            <input type="text" class="form-control" value="<?php echo htmlspecialchars($_SESSION['first_name'] . ' ' . $_SESSION['last_name']); ?>" readonly>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" name="save_record" class="btn-save">
+                                <?php echo $edit_id > 0 ? 'Update' : 'Save'; ?>
+                            </button>
+                            <a href="anthropometric_records.php?child_id=<?php echo $child_id; ?>" class="btn-cancel">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <div class="card-header">Previous Measurements</div>
+                <div class="card-body">
+                    <?php if($records && $records->num_rows > 0){ ?>
+                        <div class="table-wrapper">
+                            <table class="measurements-table">
+                                <thead>
+                                    <tr>
+                                        <th class="col-date">Date</th>
+                                        <th class="col-age center-cell">Age<br>(Months)</th>
+                                        <th class="col-height center-cell">Height<br>(cm)</th>
+                                        <th class="col-weight center-cell">Weight<br>(kg)</th>
+                                        <th class="col-muac center-cell">MUAC<br>(cm)</th>
+                                        <th class="col-wfa center-cell">WFA</th>
+                                        <th class="col-hfa center-cell">HFA</th>
+                                        <th class="col-wflh center-cell">WFL/H</th>
+                                        <th class="col-recorded-by center-cell">Recorded<br>By</th>
+                                        <th class="col-action center-cell">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php while($record = $records->fetch_assoc()){
+                                        $recorded_by_name = trim(($record['recorded_first_name'] ?? '') . ' ' . ($record['recorded_last_name'] ?? ''));
+                                        if($recorded_by_name == ''){
+                                            $recorded_by_name = 'N/A';
+                                        }
+                                    ?>
+                                        <tr>
+                                            <td class="date-cell"><?php echo date("M d, Y", strtotime($record['date_recorded'])); ?></td>
+                                            <td class="center-cell"><?php echo htmlspecialchars($record['age_months'] ?? '--'); ?></td>
+                                            <td class="center-cell unit-cell"><?php echo htmlspecialchars(number_format((float)$record['height'], 2)); ?><br>cm</td>
+                                            <td class="center-cell unit-cell"><?php echo htmlspecialchars(number_format((float)$record['weight'], 2)); ?><br>kg</td>
+                                            <td class="center-cell unit-cell"><?php echo htmlspecialchars(number_format((float)$record['muac'], 2)); ?><br>cm</td>
+                                            <td class="status-cell"><?php echo status_badge($record['wfa_status'] ?? '--'); ?></td>
+                                            <td class="status-cell"><?php echo status_badge($record['hfa_status'] ?? '--'); ?></td>
+                                            <td class="status-cell"><?php echo status_badge($record['wflh_status'] ?? '--'); ?></td>
+                                            <td class="recorded-by-cell"><?php echo htmlspecialchars($recorded_by_name); ?></td>
+                                            <td class="action-cell">
+                                                <a href="anthropometric_records.php?child_id=<?php echo $child_id; ?>&edit_id=<?php echo $record['record_id']; ?>" class="edit-btn-table">
+                                                    Edit
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    <?php } ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    <?php } else { ?>
+                        <div class="no-records">No anthropometric records found for this child.</div>
+                    <?php } ?>
+                </div>
+            </div>
+
+        <?php } ?>
+
+    </div>
+</div>
+
+<script>
+function toggleSidebar() {
+    var sidebar = document.getElementById('sidebar');
+    var mainContent = document.getElementById('mainContent');
+
+    if (window.innerWidth <= 991) {
+        sidebar.classList.toggle('open');
+    } else {
+        sidebar.classList.toggle('closed');
+        mainContent.classList.toggle('full');
+    }
+}
+</script>
+
+</body>
+</html>

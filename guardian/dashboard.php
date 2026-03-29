@@ -1,14 +1,10 @@
 <?php
 include '../includes/auth.php';
-
-if($_SESSION['role_id'] != 3){
-    header("Location: ../login.php");
-    exit();
-}
+checkRole(3);
 ?>
 
 <h1>Guardian Dashboard</h1>
-<p>Welcome, <?php echo $_SESSION['first_name']; ?>!</p>
+<p>Welcome, <?php echo htmlspecialchars($_SESSION['first_name']); ?>!</p>
 
 <h3>Child Information</h3>
 <p>Child information will appear here.</p>

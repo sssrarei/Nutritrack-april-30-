@@ -146,106 +146,420 @@ if(isset($_POST['save'])){
     }
 }
 ?>
-
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Child Profile Registration</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Child | NutriTrack</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/cdw-style.css">
+    <style>
+        *{
+            box-sizing:border-box;
+            margin:0;
+            padding:0;
+        }
+
+        body{
+            background:#eef0f3;
+            font-family:'Inter', sans-serif;
+            color:#333;
+        }
+
+        a{
+            text-decoration:none;
+        }
+
+
+        .main-content{
+            margin-left:260px;
+            padding:112px 24px 30px;
+            transition:margin-left 0.25s ease;
+        }
+
+        .main-content.full{
+            margin-left:0;
+        }
+
+        .page-header{
+            background:#ffffff;
+            border:1px solid #dcdcdc;
+            border-radius:14px;
+            padding:22px 24px;
+            margin-bottom:18px;
+        }
+
+        .back-link{
+            display:inline-flex;
+            align-items:center;
+            gap:8px;
+            margin-bottom:10px;
+            font-size:13px;
+            font-weight:600;
+            color:#2E7D32;
+        }
+
+        .page-title{
+            font-family:'Poppins', sans-serif;
+            font-size:24px;
+            font-weight:700;
+            color:#2f2f2f;
+            margin-bottom:6px;
+        }
+
+        .page-subtitle{
+            font-size:13px;
+            color:#666;
+            line-height:1.6;
+        }
+
+        .message{
+            border-radius:10px;
+            padding:14px 16px;
+            margin-bottom:16px;
+            font-size:13px;
+            font-weight:600;
+            border:1px solid transparent;
+        }
+
+        .message.success{
+            background:#e8f5e9;
+            color:#2e7d32;
+            border-color:#c8e6c9;
+        }
+
+        .message.error{
+            background:#fdeaea;
+            color:#c62828;
+            border-color:#f5c2c7;
+        }
+
+        .form-grid{
+            display:grid;
+            grid-template-columns:1fr 1fr;
+            gap:18px;
+        }
+
+        .form-card{
+            background:#ffffff;
+            border:1px solid #dcdcdc;
+            border-radius:14px;
+            padding:20px;
+        }
+
+        .form-card.full{
+            grid-column:1 / -1;
+        }
+
+        .section-title{
+            font-family:'Poppins', sans-serif;
+            font-size:17px;
+            color:#2f2f2f;
+            margin:0 0 16px 0;
+        }
+
+        .optional{
+            font-family:'Inter', sans-serif;
+            font-size:12px;
+            color:#777;
+            font-weight:500;
+        }
+
+        .form-row{
+            margin-bottom:14px;
+        }
+
+        .form-row:last-child{
+            margin-bottom:0;
+        }
+
+        .form-label{
+            display:block;
+            font-size:12px;
+            color:#666;
+            margin-bottom:6px;
+            font-weight:500;
+        }
+
+        .form-control,
+        .form-select,
+        .form-file{
+            width:100%;
+            border:1px solid #cfcfcf;
+            border-radius:8px;
+            padding:11px 12px;
+            font-size:13px;
+            font-family:'Inter', sans-serif;
+            background:#fff;
+            color:#333;
+            outline:none;
+        }
+
+        .form-control:focus,
+        .form-select:focus,
+        .form-file:focus{
+            border-color:#2E7D32;
+            box-shadow:0 0 0 3px rgba(46,125,50,0.08);
+        }
+
+        .radio-group{
+            display:flex;
+            gap:20px;
+            align-items:center;
+            flex-wrap:wrap;
+            padding-top:4px;
+        }
+
+        .radio-group label{
+            font-size:13px;
+            color:#333;
+            display:flex;
+            align-items:center;
+            gap:6px;
+        }
+
+        .health-grid{
+            display:grid;
+            grid-template-columns:1fr 1fr;
+            gap:18px;
+        }
+
+        .form-actions{
+            margin-top:18px;
+            display:flex;
+            justify-content:flex-end;
+            gap:10px;
+            flex-wrap:wrap;
+        }
+
+        .btn{
+            border:none;
+            border-radius:8px;
+            padding:11px 16px;
+            font-size:13px;
+            font-weight:600;
+            font-family:'Inter', sans-serif;
+            cursor:pointer;
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+        }
+
+        .btn-cancel{
+            background:#e0e0e0;
+            color:#444;
+        }
+
+        .btn-save{
+            background:#2E7D32;
+            color:#fff;
+        }
+
+        @media (max-width: 991px){
+            .sidebar{
+                transform:translateX(-100%);
+            }
+
+            .sidebar.open{
+                transform:translateX(0);
+            }
+
+            .sidebar-overlay.show{
+                display:block;
+                position:fixed;
+                top:88px;
+                left:0;
+                width:100%;
+                height:calc(100vh - 88px);
+                background:rgba(0,0,0,0.25);
+                z-index:1040;
+            }
+
+            .main-content{
+                margin-left:0;
+                padding:104px 16px 24px;
+            }
+
+            .topbar{
+                padding:0 12px;
+            }
+
+            .topbar-logo{
+                height:44px;
+            }
+
+            .user-chip{
+                display:none;
+            }
+
+            .form-grid{
+                grid-template-columns:1fr;
+            }
+
+            .health-grid{
+                grid-template-columns:1fr;
+            }
+
+            .form-actions{
+                justify-content:stretch;
+            }
+
+            .form-actions .btn{
+                width:100%;
+            }
+        }
+    </style>
 </head>
 <body>
 
-<p><a href="child_list.php">Back to Pupil List</a></p>
+<?php include '../includes/cdw_topbar.php'; ?>
+<?php include '../includes/cdw_sidebar.php'; ?>
 
-<h2>Child Profile Registration</h2>
-<p><strong>Active CDC:</strong> <?php echo $_SESSION['active_cdc_name']; ?></p>
+<div class="main-content" id="mainContent">
+    <div class="page-header">
+        <a href="child_list.php" class="back-link">← Back to Pupil List</a>
+        <h1 class="page-title">Child Profile Registration</h1>
+        <div class="page-subtitle">
+            Active CDC: <?php echo htmlspecialchars($_SESSION['active_cdc_name']); ?>
+        </div>
+    </div>
 
-<?php if(!empty($success)){ ?>
-    <p style="color:green;"><strong><?php echo $success; ?></strong></p>
-<?php } ?>
+    <?php if(!empty($success)){ ?>
+        <div class="message success"><?php echo htmlspecialchars($success); ?></div>
+    <?php } ?>
 
-<?php if(!empty($error)){ ?>
-    <p style="color:red;"><strong><?php echo $error; ?></strong></p>
-<?php } ?>
+    <?php if(!empty($error)){ ?>
+        <div class="message error"><?php echo htmlspecialchars($error); ?></div>
+    <?php } ?>
 
-<form method="POST" enctype="multipart/form-data">
+    <form method="POST" enctype="multipart/form-data">
+        <div class="form-grid">
+            <div class="form-card">
+                <h3 class="section-title">Child Information</h3>
 
-    <h3>Child Information</h3>
+                <div class="form-row">
+                    <label class="form-label">Child Name</label>
+                    <input type="text" name="child_name" class="form-control" placeholder="First name Middle name Last name" required>
+                </div>
 
-    <label>Child Name:</label>
-    <input type="text" name="child_name" placeholder="First name Middle name Last name" required>
-    <br><br>
+                <div class="form-row">
+                    <label class="form-label">Birthdate</label>
+                    <input type="date" name="birthdate" class="form-control" required>
+                </div>
 
-    <label>Birthdate:</label>
-    <input type="date" name="birthdate" required>
-    <br><br>
+                <div class="form-row">
+                    <label class="form-label">Sex</label>
+                    <div class="radio-group">
+                        <label><input type="radio" name="sex" value="Male" required> Male</label>
+                        <label><input type="radio" name="sex" value="Female" required> Female</label>
+                    </div>
+                </div>
 
-    <label>Sex:</label>
-    <input type="radio" name="sex" value="Male" required> Male
-    <input type="radio" name="sex" value="Female" required> Female
-    <br><br>
+                <div class="form-row">
+                    <label class="form-label">Address</label>
+                    <input type="text" name="address" class="form-control">
+                </div>
 
-    <label>Address:</label>
-    <input type="text" name="address">
-    <br><br>
+                <div class="form-row">
+                    <label class="form-label">Religion</label>
+                    <input type="text" name="religion" class="form-control">
+                </div>
+            </div>
 
-    <label>Religion:</label>
-    <input type="text" name="religion">
-    <br><br>
+            <div class="form-card">
+                <h3 class="section-title">Guardian Information <span class="optional">(Optional)</span></h3>
 
-    <hr>
+                <div class="form-row">
+                    <label class="form-label">Parent/Guardian Name</label>
+                    <input type="text" name="guardian_name" class="form-control">
+                </div>
 
-    <h3>Health Information <span style="color:gray;">(Optional)</span></h3>
+                <div class="form-row">
+                    <label class="form-label">Relationship to Child</label>
+                    <select name="relationship_to_child" class="form-select">
+                        <option value="">Select Relationship</option>
+                        <option value="Mother">Mother</option>
+                        <option value="Father">Father</option>
+                        <option value="Grandmother">Grandmother</option>
+                        <option value="Grandfather">Grandfather</option>
+                        <option value="Guardian">Guardian</option>
+                        <option value="Aunt">Aunt</option>
+                        <option value="Uncle">Uncle</option>
+                        <option value="Sibling">Sibling</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
 
-    <label>Vaccination Card:</label>
-    <input type="file" name="vaccination_card">
-    <br><br>
+                <div class="form-row">
+                    <label class="form-label">Contact Number</label>
+                    <input type="text" name="contact_number" class="form-control">
+                </div>
 
-    <label>Allergies:</label>
-    <input type="text" name="allergies">
-    <br><br>
+                <div class="form-row">
+                    <label class="form-label">Email</label>
+                    <input type="email" name="guardian_email" class="form-control">
+                </div>
+            </div>
 
-    <label>Comorbidities:</label>
-    <input type="text" name="comorbidities">
-    <br><br>
+            <div class="form-card full">
+                <h3 class="section-title">Child Health Information <span class="optional">(Optional)</span></h3>
 
-    <label>Medical History:</label>
-    <input type="file" name="medical_history_file">
-    <br><br>
+                <div class="health-grid">
+                    <div>
+                        <div class="form-row">
+                            <label class="form-label">Vaccination Card</label>
+                            <input type="file" name="vaccination_card" class="form-file">
+                        </div>
 
-    <hr>
+                        <div class="form-row">
+                            <label class="form-label">Allergies</label>
+                            <input type="text" name="allergies" class="form-control">
+                        </div>
+                    </div>
 
-    <h3>Guardian Information <span style="color:gray;">(Optional)</span></h3>
+                    <div>
+                        <div class="form-row">
+                            <label class="form-label">Medical History</label>
+                            <input type="file" name="medical_history_file" class="form-file">
+                        </div>
 
-    <label>Parent/Guardian Name:</label>
-    <input type="text" name="guardian_name">
-    <br><br>
+                        <div class="form-row">
+                            <label class="form-label">Comorbidities</label>
+                            <input type="text" name="comorbidities" class="form-control">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-    <label>Relationship to Child:</label>
-    <select name="relationship_to_child">
-        <option value="">Select Relationship</option>
-        <option value="Mother">Mother</option>
-        <option value="Father">Father</option>
-        <option value="Grandmother">Grandmother</option>
-        <option value="Grandfather">Grandfather</option>
-        <option value="Guardian">Guardian</option>
-        <option value="Aunt">Aunt</option>
-        <option value="Uncle">Uncle</option>
-        <option value="Sibling">Sibling</option>
-        <option value="Other">Other</option>
-    </select>
-    <br><br>
+        <div class="form-actions">
+            <button type="button" class="btn btn-cancel" onclick="window.location.href='child_list.php'">Cancel</button>
+            <button type="submit" name="save" class="btn btn-save">Save Pupil</button>
+        </div>
+    </form>
+</div>
 
-    <label>Contact Number:</label>
-    <input type="text" name="contact_number">
-    <br><br>
+<script>
+function toggleSidebar() {
+    var sidebar = document.getElementById('sidebar');
+    var overlay = document.getElementById('sidebarOverlay');
+    var mainContent = document.getElementById('mainContent');
 
-    <label>Email:</label>
-    <input type="email" name="guardian_email">
-    <br><br>
+    if (window.innerWidth <= 991) {
+        sidebar.classList.toggle('open');
+        overlay.classList.toggle('show');
+    } else {
+        sidebar.classList.toggle('closed');
+        mainContent.classList.toggle('full');
+    }
+}
 
-    <button type="button" onclick="window.location.href='child_list.php'">Cancel</button>
-    <button type="submit" name="save">Save Pupil</button>
-</form>
+function closeSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebarOverlay').classList.remove('show');
+}
+</script>
 
 </body>
 </html>
