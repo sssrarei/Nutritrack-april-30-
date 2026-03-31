@@ -17,6 +17,7 @@ $user_id = (int) $_SESSION['user_id'];
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 $child_id = isset($_GET['child_id']) ? (int) $_GET['child_id'] : 0;
 $edit_id = isset($_GET['edit_id']) ? (int) $_GET['edit_id'] : 0;
+$view_only = (isset($_GET['view']) && $_GET['view'] == '1') ? true : false;
 
 $success = "";
 $error = "";
@@ -80,7 +81,7 @@ function status_badge($status){
 /* =========================================================
    SAVE / UPDATE RECORD
 ========================================================= */
-if(isset($_POST['save_record'])){
+if(!$view_only && isset($_POST['save_record'])){
     $child_id_post = isset($_POST['child_id']) ? (int) $_POST['child_id'] : 0;
     $edit_record_id = isset($_POST['edit_record_id']) ? (int) $_POST['edit_record_id'] : 0;
 
@@ -280,7 +281,7 @@ if($child_id > 0){
 
     $child_data = $child_result->fetch_assoc();
 
-    if($edit_id > 0){
+    if(!$view_only && $edit_id > 0){
         $edit_stmt = $conn->prepare("
             SELECT ar.*
             FROM anthropometric_records ar
@@ -301,6 +302,8 @@ if($child_id > 0){
         } else {
             $edit_id = 0;
         }
+    } else {
+        $edit_id = 0;
     }
 
     $records_stmt = $conn->prepare("
@@ -320,7 +323,7 @@ if($child_id > 0){
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Input Height, Weight and MUAC | NutriTrack</title>
+    <title><?php echo $view_only ? 'Anthropometric Record History' : 'Input Height, Weight and MUAC'; ?> | NutriTrack</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../assets/cdw-style.css">
@@ -520,9 +523,11 @@ if($child_id > 0){
 
             <div class="page-header">
                 <a href="anthropometric_records.php" class="back-link">← Back to Search Pupils</a>
-                <h1 class="page-title">Input Height, Weight and MUAC</h1>
+                <h1 class="page-title"><?php echo $view_only ? 'Anthropometric Record History' : 'Input Height, Weight and MUAC'; ?></h1>
                 <div class="page-subtitle">
-                    Record anthropometric measurements and view previous measurement history.
+                    <?php echo $view_only
+                        ? 'View previous anthropometric records and measurement history.'
+                        : 'Record anthropometric measurements and view previous measurement history.'; ?>
                 </div>
             </div>
 
@@ -541,6 +546,7 @@ if($child_id > 0){
                 <div class="summary-item"><strong>CDC:</strong> <?php echo htmlspecialchars($child_data['cdc_name']); ?></div>
             </div>
 
+            <?php if(!$view_only){ ?>
             <div class="content-card">
                 <div class="card-header">
                     <?php echo $edit_id > 0 ? 'Edit Height, Weight and MUAC' : 'Input Height, Weight and MUAC'; ?>
@@ -579,6 +585,7 @@ if($child_id > 0){
                     </form>
                 </div>
             </div>
+            <?php } ?>
 
             <div class="content-card">
                 <div class="card-header">Previous Measurements</div>
@@ -597,7 +604,9 @@ if($child_id > 0){
                                         <th class="col-hfa center-cell">HFA</th>
                                         <th class="col-wflh center-cell">WFL/H</th>
                                         <th class="col-recorded-by center-cell">Recorded<br>By</th>
-                                        <th class="col-action center-cell">Action</th>
+                                        <?php if(!$view_only){ ?>
+                                            <th class="col-action center-cell">Action</th>
+                                        <?php } ?>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -617,11 +626,13 @@ if($child_id > 0){
                                             <td class="status-cell"><?php echo status_badge($record['hfa_status'] ?? '--'); ?></td>
                                             <td class="status-cell"><?php echo status_badge($record['wflh_status'] ?? '--'); ?></td>
                                             <td class="recorded-by-cell"><?php echo htmlspecialchars($recorded_by_name); ?></td>
+                                            <?php if(!$view_only){ ?>
                                             <td class="action-cell">
                                                 <a href="anthropometric_records.php?child_id=<?php echo $child_id; ?>&edit_id=<?php echo $record['record_id']; ?>" class="edit-btn-table">
                                                     Edit
                                                 </a>
                                             </td>
+                                            <?php } ?>
                                         </tr>
                                     <?php } ?>
                                 </tbody>

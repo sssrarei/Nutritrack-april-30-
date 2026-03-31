@@ -406,6 +406,10 @@ if(isset($_POST['save_feeding'])){
                     $attendance_value = isset($attendance_list[$child_id]) ? $attendance_list[$child_id] : 'Absent';
                     $remarks_value = isset($remarks_list[$child_id]) ? trim($remarks_list[$child_id]) : '';
 
+                    if($attendance_value === 'Absent' && $remarks_value === ''){
+                        $remarks_value = 'Absent';
+                    }
+
                     $check_record_stmt->bind_param("is", $child_id, $feeding_date);
                     $check_record_stmt->execute();
                     $check_record_result = $check_record_stmt->get_result();
@@ -559,32 +563,37 @@ if($recent_result && $recent_result->num_rows > 0){
             <div class="message error"><?php echo htmlspecialchars($error); ?></div>
         <?php } ?>
 
-        <div class="content-card">
-            <div class="card-header">Load Feeding Date</div>
-            <div class="card-body">
-                <form method="GET" class="search-form">
-                    <input
-                        type="date"
-                        name="feeding_date"
-                        class="search-input date-input"
-                        value="<?php echo htmlspecialchars($feeding_date); ?>"
-                        required
-                    >
-                    <input
-                        type="text"
-                        name="search"
-                        class="search-input"
-                        placeholder="Search Pupils"
-                        value="<?php echo htmlspecialchars($search); ?>"
-                    >
-                    <button type="submit" class="search-btn">Load</button>
-                </form>
-            </div>
-        </div>
-
         <form method="POST" id="feedingForm">
-            <input type="hidden" name="feeding_date" value="<?php echo htmlspecialchars($feeding_date); ?>">
             <input type="hidden" name="search" value="<?php echo htmlspecialchars($search); ?>">
+
+            <div class="content-card">
+                <div class="card-header">Supplementary Feeding Form</div>
+                <div class="card-body">
+                    <div class="form-grid feeding-top-grid">
+                        <div class="form-group">
+                            <label class="form-label">Date</label>
+                            <input
+                                type="date"
+                                name="feeding_date"
+                                class="form-control"
+                                value="<?php echo htmlspecialchars($feeding_date); ?>"
+                                required
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Search Pupils</label>
+                            <input
+                                type="text"
+                                id="searchPupilInput"
+                                class="form-control"
+                                placeholder="Search pupils"
+                                value="<?php echo htmlspecialchars($search); ?>"
+                            >
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <div class="content-card">
                 <div class="card-header">Meal Setup for the Day</div>
@@ -667,7 +676,7 @@ if($recent_result && $recent_result->num_rows > 0){
                 <div class="card-header">Pupils Feeding Attendance and Editable Servings</div>
                 <div class="card-body">
                     <?php if(!empty($children)){ ?>
-                        <div class="pupil-feed-list">
+                        <div class="pupil-feed-list" id="pupilFeedList">
                             <?php foreach($children as $child){ ?>
                                 <?php
                                     $child_id = (int) $child['child_id'];
@@ -675,7 +684,7 @@ if($recent_result && $recent_result->num_rows > 0){
                                     $saved_attendance = isset($existing_records[$child_id]['attendance']) ? $existing_records[$child_id]['attendance'] : 'Present';
                                     $saved_remarks = isset($existing_records[$child_id]['remarks']) ? $existing_records[$child_id]['remarks'] : '';
                                 ?>
-                                <div class="pupil-feed-card" data-child-id="<?php echo $child_id; ?>">
+                                <div class="pupil-feed-card" data-child-id="<?php echo $child_id; ?>" data-child-name="<?php echo htmlspecialchars(strtolower($child_full_name)); ?>">
                                     <input type="hidden" name="child_ids[]" value="<?php echo $child_id; ?>">
 
                                     <div class="pupil-feed-top">
@@ -703,7 +712,7 @@ if($recent_result && $recent_result->num_rows > 0){
                                         <input
                                             type="text"
                                             name="remarks[<?php echo $child_id; ?>]"
-                                            class="table-input"
+                                            class="table-input remarks-input"
                                             value="<?php echo htmlspecialchars($saved_remarks); ?>"
                                             placeholder="Optional remarks"
                                         >
@@ -743,7 +752,7 @@ if($recent_result && $recent_result->num_rows > 0){
                                         <div class="recent-record-date"><?php echo date("F d, Y", strtotime($record['feeding_date'])); ?></div>
                                     </div>
                                     <div>
-                                        <span class="status-badge <?php echo strtolower($record['attendance']); ?>">
+                                        <span class="status-badge <?php echo strtolower(str_replace(' ', '-', $record['attendance'])); ?>">
                                             <?php echo htmlspecialchars($record['attendance']); ?>
                                         </span>
                                     </div>
@@ -870,6 +879,7 @@ function renderMealInputsForAllChildren() {
         const childId = card.getAttribute('data-child-id');
         const container = card.querySelector('.meal-inputs-grid');
         const attendanceSelect = card.querySelector('.attendance-select');
+        const remarksInput = card.querySelector('.remarks-input');
         const isAbsent = attendanceSelect.value === 'Absent';
 
         const oldInputs = container.querySelectorAll('.measurement-input');
@@ -887,58 +897,67 @@ function renderMealInputsForAllChildren() {
 
         if (selectedMeals.length === 0) {
             container.innerHTML = '<div class="no-meal-items">No meal items selected yet.</div>';
-            return;
+        } else {
+            selectedMeals.forEach(function(meal) {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'meal-measurement-item';
+
+                const label = document.createElement('label');
+                label.className = 'small-label';
+                label.textContent = meal.groupText + ': ' + meal.itemText;
+
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.name = `measurements[${childId}][${meal.key}]`;
+                input.className = 'table-input measurement-input';
+                input.setAttribute('data-menu-key', meal.key);
+                input.placeholder = 'Example: 2pcs, 1 cup, 1/2 cup';
+
+                let inputValue = meal.defaultMeasurement;
+                let isCustom = false;
+
+                if (manualValues[meal.key] && manualValues[meal.key].custom) {
+                    inputValue = manualValues[meal.key].value;
+                    isCustom = true;
+                } else if (
+                    existingMeasurements[childId] &&
+                    typeof existingMeasurements[childId][meal.key] !== 'undefined'
+                ) {
+                    inputValue = existingMeasurements[childId][meal.key];
+                    isCustom = existingMeasurements[childId][meal.key] !== meal.defaultMeasurement;
+                }
+
+                input.value = inputValue;
+                input.setAttribute('data-custom', isCustom ? '1' : '0');
+
+                input.addEventListener('input', function() {
+                    if (input.value === meal.defaultMeasurement) {
+                        input.setAttribute('data-custom', '0');
+                    } else {
+                        input.setAttribute('data-custom', '1');
+                    }
+                });
+
+                if (isAbsent) {
+                    input.disabled = true;
+                    input.value = '';
+                }
+
+                wrapper.appendChild(label);
+                wrapper.appendChild(input);
+                container.appendChild(wrapper);
+            });
         }
 
-        selectedMeals.forEach(function(meal) {
-            const wrapper = document.createElement('div');
-            wrapper.className = 'meal-measurement-item';
-
-            const label = document.createElement('label');
-            label.className = 'small-label';
-            label.textContent = meal.groupText + ': ' + meal.itemText;
-
-            const input = document.createElement('input');
-            input.type = 'text';
-            input.name = `measurements[${childId}][${meal.key}]`;
-            input.className = 'table-input measurement-input';
-            input.setAttribute('data-menu-key', meal.key);
-            input.placeholder = 'Example: 2pcs, 1 cup, 1/2 cup';
-
-            let inputValue = meal.defaultMeasurement;
-            let isCustom = false;
-
-            if (manualValues[meal.key] && manualValues[meal.key].custom) {
-                inputValue = manualValues[meal.key].value;
-                isCustom = true;
-            } else if (
-                existingMeasurements[childId] &&
-                typeof existingMeasurements[childId][meal.key] !== 'undefined'
-            ) {
-                inputValue = existingMeasurements[childId][meal.key];
-                isCustom = existingMeasurements[childId][meal.key] !== meal.defaultMeasurement;
+        if (isAbsent) {
+            remarksInput.value = 'Absent';
+            remarksInput.disabled = true;
+        } else {
+            if (remarksInput.value === 'Absent') {
+                remarksInput.value = '';
             }
-
-            input.value = inputValue;
-            input.setAttribute('data-custom', isCustom ? '1' : '0');
-
-            input.addEventListener('input', function() {
-                if (input.value === meal.defaultMeasurement) {
-                    input.setAttribute('data-custom', '0');
-                } else {
-                    input.setAttribute('data-custom', '1');
-                }
-            });
-
-            if (isAbsent) {
-                input.disabled = true;
-                input.value = '';
-            }
-
-            wrapper.appendChild(label);
-            wrapper.appendChild(input);
-            container.appendChild(wrapper);
-        });
+            remarksInput.disabled = false;
+        }
     });
 
     updateSummaryPreview();
@@ -1029,6 +1048,24 @@ document.querySelectorAll('.attendance-select').forEach(function(select) {
         renderMealInputsForAllChildren();
     });
 });
+
+const searchPupilInput = document.getElementById('searchPupilInput');
+if (searchPupilInput) {
+    searchPupilInput.addEventListener('input', function() {
+        const keyword = this.value.toLowerCase().trim();
+        const cards = document.querySelectorAll('.pupil-feed-card');
+
+        cards.forEach(function(card) {
+            const childName = card.getAttribute('data-child-name');
+
+            if (childName.includes(keyword)) {
+                card.style.display = '';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    });
+}
 
 function toggleSidebar() {
     var sidebar = document.getElementById('sidebar');

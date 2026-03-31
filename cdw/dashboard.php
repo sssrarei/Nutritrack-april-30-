@@ -49,6 +49,192 @@ if(isset($_POST['switch_cdc'])){
         $error = "Invalid CDC selection.";
     }
 }
+
+/*
+|--------------------------------------------------------------------------
+| DASHBOARD COUNTS
+|--------------------------------------------------------------------------
+| - Only children under the currently selected / switched CDC
+| - Total Child Enrolled in = total children under active CDC
+| - Nutritional counts = latest anthropometric record only per child
+| - Option A:
+|   Normal only if wfa_status, hfa_status, and wflh_status are all Normal
+|--------------------------------------------------------------------------
+*/
+
+$total_children_count = 0;
+$normal_count = 0;
+$underweight_count = 0;
+$severely_underweight_count = 0;
+$overweight_count = 0;
+$obese_count = 0;
+$stunted_count = 0;
+$severely_stunted_count = 0;
+$moderately_wasted_count = 0;
+$severely_wasted_count = 0;
+
+/*
+|--------------------------------------------------------------------------
+| FOOD GROUP GRAPH DATA
+|--------------------------------------------------------------------------
+| - Active/switched CDC only
+| - Count of food group entries from feeding_record_items
+| - NO milk_feeding_records involved
+| - Show all food groups even if zero
+|--------------------------------------------------------------------------
+*/
+$food_group_data = [];
+$food_group_max = 1;
+
+/*
+|--------------------------------------------------------------------------
+| NUTRITIONAL STATUS GRAPH DATA
+|--------------------------------------------------------------------------
+| - Based on current dashboard counts
+|--------------------------------------------------------------------------
+*/
+$nutritional_graph_data = [];
+
+if(isset($_SESSION['active_cdc_id']) && !empty($_SESSION['active_cdc_id'])){
+    $active_cdc_id = (int) $_SESSION['active_cdc_id'];
+
+    // Total children enrolled in active CDC
+    $total_sql = "
+        SELECT COUNT(*) AS total_children_count
+        FROM children
+        WHERE cdc_id = '$active_cdc_id'
+    ";
+    $total_result = mysqli_query($conn, $total_sql);
+    if($total_result){
+        $total_row = mysqli_fetch_assoc($total_result);
+        $total_children_count = $total_row['total_children_count'] ?? 0;
+    }
+
+    // Latest nutritional status counts per child under active CDC only
+    $summary_sql = "
+        SELECT
+            SUM(
+                CASE
+                    WHEN ar.wfa_status = 'Normal'
+                     AND ar.hfa_status = 'Normal'
+                     AND ar.wflh_status = 'Normal'
+                    THEN 1 ELSE 0
+                END
+            ) AS normal_count,
+
+            SUM(CASE WHEN ar.wfa_status = 'Underweight' THEN 1 ELSE 0 END) AS underweight_count,
+            SUM(CASE WHEN ar.wfa_status = 'Severely Underweight' THEN 1 ELSE 0 END) AS severely_underweight_count,
+
+            SUM(CASE WHEN ar.hfa_status = 'Stunted' THEN 1 ELSE 0 END) AS stunted_count,
+            SUM(CASE WHEN ar.hfa_status = 'Severely Stunted' THEN 1 ELSE 0 END) AS severely_stunted_count,
+
+            SUM(CASE WHEN ar.wflh_status = 'Moderately Wasted' THEN 1 ELSE 0 END) AS moderately_wasted_count,
+            SUM(CASE WHEN ar.wflh_status = 'Severely Wasted' THEN 1 ELSE 0 END) AS severely_wasted_count,
+            SUM(CASE WHEN ar.wflh_status = 'Overweight' THEN 1 ELSE 0 END) AS overweight_count,
+            SUM(CASE WHEN ar.wflh_status = 'Obese' THEN 1 ELSE 0 END) AS obese_count
+
+        FROM anthropometric_records ar
+        INNER JOIN children c ON ar.child_id = c.child_id
+
+        INNER JOIN (
+            SELECT ar2.child_id, MAX(ar2.date_recorded) AS latest_date
+            FROM anthropometric_records ar2
+            INNER JOIN children c2 ON ar2.child_id = c2.child_id
+            WHERE c2.cdc_id = '$active_cdc_id'
+            GROUP BY ar2.child_id
+        ) latest
+            ON ar.child_id = latest.child_id
+            AND ar.date_recorded = latest.latest_date
+
+        INNER JOIN (
+            SELECT ar3.child_id, ar3.date_recorded, MAX(ar3.record_id) AS latest_record_id
+            FROM anthropometric_records ar3
+            INNER JOIN children c3 ON ar3.child_id = c3.child_id
+            WHERE c3.cdc_id = '$active_cdc_id'
+            GROUP BY ar3.child_id, ar3.date_recorded
+        ) latest_id
+            ON ar.child_id = latest_id.child_id
+            AND ar.date_recorded = latest_id.date_recorded
+            AND ar.record_id = latest_id.latest_record_id
+
+        WHERE c.cdc_id = '$active_cdc_id'
+    ";
+
+    $summary_result = mysqli_query($conn, $summary_sql);
+
+    if($summary_result){
+        $summary = mysqli_fetch_assoc($summary_result);
+
+        $normal_count = $summary['normal_count'] ?? 0;
+        $underweight_count = $summary['underweight_count'] ?? 0;
+        $severely_underweight_count = $summary['severely_underweight_count'] ?? 0;
+        $overweight_count = $summary['overweight_count'] ?? 0;
+        $obese_count = $summary['obese_count'] ?? 0;
+        $stunted_count = $summary['stunted_count'] ?? 0;
+        $severely_stunted_count = $summary['severely_stunted_count'] ?? 0;
+        $moderately_wasted_count = $summary['moderately_wasted_count'] ?? 0;
+        $severely_wasted_count = $summary['severely_wasted_count'] ?? 0;
+    }
+
+    // Food group consumption graph data
+    // NOTE: This counts ONLY food group entries from feeding modules.
+    // It does NOT use milk_feeding_records.
+    $food_sql = "
+        SELECT
+            fg.food_group_id,
+            fg.food_group_name,
+            SUM(
+                CASE
+                    WHEN c.cdc_id = '$active_cdc_id' THEN 1
+                    ELSE 0
+                END
+            ) AS total_count
+        FROM food_groups fg
+        LEFT JOIN feeding_record_items fri
+            ON fg.food_group_id = fri.food_group_id
+        LEFT JOIN feeding_records fr
+            ON fri.feeding_record_id = fr.feeding_record_id
+        LEFT JOIN children c
+            ON fr.child_id = c.child_id
+        GROUP BY fg.food_group_id, fg.food_group_name
+        ORDER BY fg.food_group_id ASC
+    ";
+
+    $food_result = mysqli_query($conn, $food_sql);
+
+    if($food_result){
+        while($row = mysqli_fetch_assoc($food_result)){
+            $food_group_data[] = $row;
+            if((int)$row['total_count'] > $food_group_max){
+                $food_group_max = (int)$row['total_count'];
+            }
+        }
+    }
+}
+
+/*
+|--------------------------------------------------------------------------
+| Build Nutritional Status Graph Data
+|--------------------------------------------------------------------------
+*/
+$nutritional_graph_data = [
+    ['label' => 'Normal', 'count' => (int)$normal_count, 'class' => 'bar-mix-1'],
+    ['label' => 'Underweight', 'count' => (int)$underweight_count, 'class' => 'bar-mix-2'],
+    ['label' => 'Severely Underweight', 'count' => (int)$severely_underweight_count, 'class' => 'bar-mix-3'],
+    ['label' => 'Overweight', 'count' => (int)$overweight_count, 'class' => 'bar-mix-4'],
+    ['label' => 'Obese', 'count' => (int)$obese_count, 'class' => 'bar-mix-5'],
+    ['label' => 'Stunted', 'count' => (int)$stunted_count, 'class' => 'bar-mix-6'],
+    ['label' => 'Severely Stunted', 'count' => (int)$severely_stunted_count, 'class' => 'bar-mix-7'],
+    ['label' => 'Moderately Wasted', 'count' => (int)$moderately_wasted_count, 'class' => 'bar-mix-8'],
+    ['label' => 'Severely Wasted', 'count' => (int)$severely_wasted_count, 'class' => 'bar-mix-9']
+];
+
+$nutritional_graph_max = 1;
+foreach($nutritional_graph_data as $item){
+    if($item['count'] > $nutritional_graph_max){
+        $nutritional_graph_max = $item['count'];
+    }
+}
 ?>
 <!DOCTYPE html>
 <html>
@@ -56,289 +242,8 @@ if(isset($_POST['switch_cdc'])){
     <title>CDW Dashboard | NutriTrack</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-     <link rel="stylesheet" href="../assets/cdw-style.css">
-    <style>
-        *{
-            box-sizing:border-box;
-            margin:0;
-            padding:0;
-        }
-
-        body{
-            background:#eef0f3;
-            font-family:'Inter', sans-serif;
-            color:#333;
-        }
-
-        a{
-            text-decoration:none;
-        }
-
-       
-       
-        
-
-        /* MAIN CONTENT */
-        .main-content{
-            margin-left:260px;
-            padding:112px 24px 30px;
-            transition:margin-left 0.25s ease;
-        }
-
-        .main-content.full{
-            margin-left:0;
-        }
-
-        .page-card{
-            background:#ffffff;
-            border:1px solid #dcdcdc;
-            border-radius:14px;
-            padding:24px;
-            margin-bottom:18px;
-        }
-
-        .error-msg{
-            color:#c62828;
-            font-size:13px;
-            margin-bottom:14px;
-            text-align:center;
-        }
-
-        .cdc-switch-area{
-            text-align:center;
-        }
-
-        .cdc-title{
-            font-family:'Poppins', sans-serif;
-            font-size:24px;
-            font-weight:700;
-            text-transform:uppercase;
-            color:#3a3a3a;
-            margin-bottom:14px;
-        }
-
-        .cdc-form{
-            display:flex;
-            justify-content:center;
-            align-items:center;
-            gap:10px;
-            flex-wrap:wrap;
-            margin-bottom:10px;
-        }
-
-        .cdc-form select{
-            min-width:280px;
-            padding:10px 12px;
-            border:1px solid #cfcfcf;
-            border-radius:8px;
-            font-family:'Inter', sans-serif;
-            font-size:13px;
-            background:#fff;
-            outline:none;
-        }
-
-        .cdc-form button{
-            padding:10px 16px;
-            border:none;
-            border-radius:8px;
-            background:#2e7d32;
-            color:#fff;
-            font-family:'Inter', sans-serif;
-            font-size:13px;
-            font-weight:600;
-            cursor:pointer;
-        }
-
-        .active-cdc-text{
-            margin-top:4px;
-            font-size:12px;
-            color:#666;
-        }
-
-        .cards-grid{
-            display:grid;
-            grid-template-columns:repeat(5, 1fr);
-            gap:12px;
-            margin-top:22px;
-        }
-
-        .card{
-            border:1.5px solid #b8b8b8;
-            background:#fff;
-            min-height:112px;
-            display:flex;
-            flex-direction:column;
-            border-radius:8px;
-            overflow:hidden;
-        }
-
-        .card-title{
-            min-height:52px;
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            text-align:center;
-            padding:8px 10px;
-            font-family:'Poppins', sans-serif;
-            font-size:16px;
-            line-height:1.2;
-            border-bottom:1.5px solid #b8b8b8;
-        }
-
-        .card-body{
-            flex:1;
-            background:#fff;
-        }
-
-        .title-normal{
-            color:#2e7d32;
-            background:#dfe8de;
-        }
-
-        .title-alert{
-            color:#d12c24;
-            background:#efdfdc;
-        }
-
-        .chart-section{
-            display:grid;
-            grid-template-columns:1fr 1fr;
-            gap:20px;
-        }
-
-        .chart-box{
-            background:#fff;
-            border:1.5px solid #d0d0d0;
-            border-radius:12px;
-            min-height:325px;
-            padding:18px 16px 14px;
-        }
-
-        .chart-title{
-            font-family:'Poppins', sans-serif;
-            font-size:16px;
-            text-align:center;
-            color:#3d3d3d;
-            margin-bottom:18px;
-        }
-
-        .fake-chart{
-            height:255px;
-            display:flex;
-            align-items:flex-end;
-            gap:12px;
-            padding:0 10px 0;
-            border-bottom:1px solid #dcdcdc;
-        }
-
-        .fake-bar{
-            flex:1;
-            border-radius:4px 4px 0 0;
-        }
-
-        .bar-green-1{ height:52%; background:#8acb99; }
-        .bar-green-2{ height:68%; background:#5ea96a; }
-        .bar-green-3{ height:86%; background:#5ca767; }
-        .bar-green-4{ height:48%; background:#8acb99; }
-        .bar-green-5{ height:56%; background:#9ac29f; }
-        .bar-green-6{ height:52%; background:#5ea96a; }
-        .bar-green-7{ height:63%; background:#5ca767; }
-        .bar-green-8{ height:60%; background:#a1c7a5; }
-
-        .bar-mix-1{ height:34%; background:#47b248; }
-        .bar-mix-2{ height:50%; background:#ddbbbb; }
-        .bar-mix-3{ height:63%; background:#ff3d3d; }
-        .bar-mix-4{ height:78%; background:#e5b8b8; }
-        .bar-mix-5{ height:46%; background:#ff3d3d; }
-        .bar-mix-6{ height:54%; background:#dcc0c0; }
-        .bar-mix-7{ height:48%; background:#ff3d3d; }
-        .bar-mix-8{ height:59%; background:#eb5656; }
-        .bar-mix-9{ height:55%; background:#ff3d3d; }
-
-        .chart-labels{
-            display:grid;
-            grid-template-columns:repeat(8, 1fr);
-            gap:12px;
-            margin-top:8px;
-            font-size:10px;
-            color:#555;
-            text-align:center;
-        }
-
-        .chart-labels.nutri{
-            grid-template-columns:repeat(9, 1fr);
-        }
-
-        @media (max-width: 1200px){
-            .cards-grid{
-                grid-template-columns:repeat(3, 1fr);
-            }
-        }
-
-        @media (max-width: 991px){
-            .sidebar{
-                transform:translateX(-100%);
-            }
-
-            .sidebar.open{
-                transform:translateX(0);
-            }
-
-            .sidebar-overlay.show{
-                display:block;
-                position:fixed;
-                top:88px;
-                left:0;
-                width:100%;
-                height:calc(100vh - 88px);
-                background:rgba(0,0,0,0.25);
-                z-index:1040;
-            }
-
-            .main-content{
-                margin-left:0;
-                padding:104px 16px 24px;
-            }
-
-            .topbar{
-                padding:0 12px;
-            }
-
-            .topbar-logo{
-                height:44px;
-            }
-
-            .user-chip{
-                display:none;
-            }
-
-            .chart-section{
-                grid-template-columns:1fr;
-            }
-
-            .cards-grid{
-                grid-template-columns:repeat(2, 1fr);
-            }
-        }
-
-        @media (max-width: 600px){
-            .cards-grid{
-                grid-template-columns:1fr;
-            }
-
-            .cdc-title{
-                font-size:20px;
-            }
-
-            .chart-box{
-                min-height:280px;
-            }
-
-            .card-title{
-                font-size:14px;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="../assets/cdw-style.css">
+    <link rel="stylesheet" href="../assets/cdw-dashboard.css">
 </head>
 <body>
 
@@ -403,48 +308,73 @@ if(isset($_POST['switch_cdc'])){
     <div class="page-card">
         <div class="cards-grid">
             <div class="card">
+                <div class="card-title title-blue">Total Child Enrolled in</div>
+                <div class="card-body">
+                    <div class="card-count"><?php echo $total_children_count; ?></div>
+                </div>
+            </div>
+
+            <div class="card">
                 <div class="card-title title-normal">Normal</div>
-                <div class="card-body"></div>
+                <div class="card-body">
+                    <div class="card-count"><?php echo $normal_count; ?></div>
+                </div>
             </div>
 
             <div class="card">
                 <div class="card-title title-alert">Underweight</div>
-                <div class="card-body"></div>
+                <div class="card-body">
+                    <div class="card-count"><?php echo $underweight_count; ?></div>
+                </div>
             </div>
 
             <div class="card">
                 <div class="card-title title-alert">Severely Underweight</div>
-                <div class="card-body"></div>
+                <div class="card-body">
+                    <div class="card-count"><?php echo $severely_underweight_count; ?></div>
+                </div>
             </div>
 
             <div class="card">
                 <div class="card-title title-alert">Overweight</div>
-                <div class="card-body"></div>
+                <div class="card-body">
+                    <div class="card-count"><?php echo $overweight_count; ?></div>
+                </div>
             </div>
 
             <div class="card">
                 <div class="card-title title-alert">Obese</div>
-                <div class="card-body"></div>
+                <div class="card-body">
+                    <div class="card-count"><?php echo $obese_count; ?></div>
+                </div>
             </div>
 
             <div class="card">
                 <div class="card-title title-alert">Stunted</div>
-                <div class="card-body"></div>
+                <div class="card-body">
+                    <div class="card-count"><?php echo $stunted_count; ?></div>
+                </div>
             </div>
 
             <div class="card">
                 <div class="card-title title-alert">Severely Stunted</div>
-                <div class="card-body"></div>
+                <div class="card-body">
+                    <div class="card-count"><?php echo $severely_stunted_count; ?></div>
+                </div>
             </div>
 
             <div class="card">
                 <div class="card-title title-alert">Moderately Wasted</div>
-                <div class="card-body"></div>
+                <div class="card-body">
+                    <div class="card-count"><?php echo $moderately_wasted_count; ?></div>
+                </div>
             </div>
 
             <div class="card">
                 <div class="card-title title-alert">Severely Wasted</div>
-                <div class="card-body"></div>
+                <div class="card-body">
+                    <div class="card-count"><?php echo $severely_wasted_count; ?></div>
+                </div>
             </div>
         </div>
     </div>
@@ -457,25 +387,22 @@ if(isset($_POST['switch_cdc'])){
             </div>
 
             <div class="fake-chart">
-                <div class="fake-bar bar-green-1"></div>
-                <div class="fake-bar bar-green-2"></div>
-                <div class="fake-bar bar-green-3"></div>
-                <div class="fake-bar bar-green-4"></div>
-                <div class="fake-bar bar-green-5"></div>
-                <div class="fake-bar bar-green-6"></div>
-                <div class="fake-bar bar-green-7"></div>
-                <div class="fake-bar bar-green-8"></div>
+                <?php foreach($food_group_data as $index => $fg){ 
+                    $height = 0;
+                    if($food_group_max > 0){
+                        $height = ((int)$fg['total_count'] / $food_group_max) * 100;
+                    }
+
+                    $bar_class = 'bar-green-' . (($index % 8) + 1);
+                ?>
+                    <div class="fake-bar <?php echo $bar_class; ?>" style="height: <?php echo $height; ?>%;"></div>
+                <?php } ?>
             </div>
 
-            <div class="chart-labels">
-                <div>Sugar/Sweets</div>
-                <div>Fish/Shellfish/Meat</div>
-                <div>Milk Products</div>
-                <div>Eggs/Beans</div>
-                <div>Vegetables</div>
-                <div>Fruits</div>
-                <div>Rice/Corn/Root Crops</div>
-                <div>Fats/Oils</div>
+            <div class="chart-labels food-chart-labels" style="grid-template-columns:repeat(<?php echo count($food_group_data) > 0 ? count($food_group_data) : 1; ?>, 1fr);">
+                <?php foreach($food_group_data as $fg){ ?>
+                    <div class="food-label"><?php echo htmlspecialchars($fg['food_group_name']); ?></div>
+                <?php } ?>
             </div>
         </div>
 
@@ -486,27 +413,20 @@ if(isset($_POST['switch_cdc'])){
             </div>
 
             <div class="fake-chart">
-                <div class="fake-bar bar-mix-1"></div>
-                <div class="fake-bar bar-mix-2"></div>
-                <div class="fake-bar bar-mix-3"></div>
-                <div class="fake-bar bar-mix-4"></div>
-                <div class="fake-bar bar-mix-5"></div>
-                <div class="fake-bar bar-mix-6"></div>
-                <div class="fake-bar bar-mix-7"></div>
-                <div class="fake-bar bar-mix-8"></div>
-                <div class="fake-bar bar-mix-9"></div>
+                <?php foreach($nutritional_graph_data as $item){ 
+                    $height = 0;
+                    if($nutritional_graph_max > 0){
+                        $height = ($item['count'] / $nutritional_graph_max) * 100;
+                    }
+                ?>
+                    <div class="fake-bar <?php echo $item['class']; ?>" style="height: <?php echo $height; ?>%;"></div>
+                <?php } ?>
             </div>
 
             <div class="chart-labels nutri">
-                <div>Normal</div>
-                <div>Underweight</div>
-                <div>Severely Underweight</div>
-                <div>Overweight</div>
-                <div>Obese</div>
-                <div>Stunted</div>
-                <div>Severely Stunted</div>
-                <div>Moderately Wasted</div>
-                <div>Severely Wasted</div>
+                <?php foreach($nutritional_graph_data as $item){ ?>
+                    <div class="food-label"><?php echo htmlspecialchars($item['label']); ?></div>
+                <?php } ?>
             </div>
         </div>
     </div>

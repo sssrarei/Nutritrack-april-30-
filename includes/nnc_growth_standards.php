@@ -148,7 +148,7 @@ if (!function_exists('nnc_get_wflh_status')) {
     function nnc_get_wflh_status(mysqli $conn, $sex, $age_months, $height_cm, $weight){
         $age_months = (int)$age_months;
 
-        if($age_months < 24 || $age_months > 71){
+        if($age_months < 0 || $age_months > 71){
             return '--';
         }
 
