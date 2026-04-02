@@ -232,6 +232,11 @@ tbody tr:hover {
     color: #2e7d32;
 }
 
+.badge-maintained {
+    background: #fdf3d6;
+    color: #9a7b24;
+}
+
 .badge-no-change {
     background: #eceff1;
     color: #455a64;

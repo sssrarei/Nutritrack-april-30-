@@ -77,9 +77,9 @@ function get_status_rank($status){
         'Underweight' => 4,
         'Severely Stunted' => 5,
         'Stunted' => 6,
-        'Normal' => 7,
-        'Overweight' => 8,
-        'Obese' => 9
+        'Overweight' => 7,
+        'Obese' => 8,
+        'Normal' => 9
     ];
 
     return isset($ranks[$status]) ? $ranks[$status] : 0;
@@ -91,6 +91,10 @@ function get_improvement_text($baseline_status, $endline_status){
 
     if($baseline_rank === 0 || $endline_rank === 0){
         return 'No Data';
+    }
+
+    if($baseline_status === 'Normal' && $endline_status === 'Normal'){
+        return 'Maintained';
     }
 
     if($endline_rank > $baseline_rank){
@@ -121,6 +125,10 @@ function get_improvement_badge_class($text){
 
     if($text === 'improved'){
         return 'badge-improved';
+    }
+
+    if($text === 'maintained'){
+        return 'badge-maintained';
     }
 
     if($text === 'worsened'){
@@ -266,14 +274,14 @@ if($children_stmt){
 
 $total_children = count($rows);
 $improved_count = 0;
-$no_change_count = 0;
+$maintained_count = 0;
 $worsened_count = 0;
 
 foreach($rows as $row){
     if($row['improvement'] === 'Improved'){
         $improved_count++;
-    } elseif($row['improvement'] === 'No Change'){
-        $no_change_count++;
+    } elseif($row['improvement'] === 'Maintained'){
+        $maintained_count++;
     } elseif($row['improvement'] === 'Worsened'){
         $worsened_count++;
     }
@@ -338,8 +346,8 @@ foreach($rows as $row){
             </div>
 
             <div class="summary-card">
-                <div class="summary-label">No Change</div>
-                <div class="summary-value"><?php echo $no_change_count; ?></div>
+                <div class="summary-label">Maintained</div>
+                <div class="summary-value"><?php echo $maintained_count; ?></div>
             </div>
 
             <div class="summary-card">
