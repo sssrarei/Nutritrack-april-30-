@@ -236,6 +236,65 @@ a{
     padding:0 4px;
 }
 
+/* ================= DASHBOARD DARK MODE ================= */
+body.dark-mode{
+    background:#0f172a;
+    color:#e5e7eb;
+}
+
+body.dark-mode .page-card{
+    background:#111827;
+    border:1px solid #334155;
+}
+
+body.dark-mode .cdc-title{
+    color:#f8fafc;
+}
+
+body.dark-mode .cdc-form select{
+    background:#0f172a;
+    color:#f8fafc;
+    border:1px solid #475569;
+}
+
+body.dark-mode .active-cdc-text{
+    color:#cbd5e1;
+}
+
+body.dark-mode .card{
+    background:#111827;
+    border:1.5px solid #334155;
+}
+
+body.dark-mode .card-title{
+    border-bottom:1.5px solid #334155;
+}
+
+body.dark-mode .card-body{
+    background:#111827;
+}
+
+body.dark-mode .card-count{
+    color:#f8fafc;
+}
+
+body.dark-mode .chart-box{
+    background:#111827;
+    border:1.5px solid #334155;
+}
+
+body.dark-mode .chart-title{
+    color:#f8fafc;
+}
+
+body.dark-mode .fake-chart{
+    border-bottom:1px solid #334155;
+}
+
+body.dark-mode .chart-labels{
+    color:#cbd5e1;
+}
+
 @media (max-width: 1200px){
     .cards-grid{
         grid-template-columns:repeat(3, 1fr);

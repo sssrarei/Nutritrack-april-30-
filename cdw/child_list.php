@@ -7,12 +7,17 @@ if($_SESSION['role_id'] != 2){
     exit();
 }
 
+if (!isset($_SESSION['theme_mode'])) {
+    $_SESSION['theme_mode'] = 'light';
+}
+
 if(!isset($_SESSION['active_cdc_id'])){
     die("Please select an active CDC first from the dashboard.");
 }
 
 $cdc_id = $_SESSION['active_cdc_id'];
 $search = "";
+$theme_mode = $_SESSION['theme_mode'];
 
 function compute_age_months_from_birthdate($birthdate){
     if(empty($birthdate) || $birthdate == '0000-00-00'){
@@ -156,6 +161,7 @@ $result = $stmt->get_result();
             font-family:'Inter', sans-serif;
             color:#333;
             outline:none;
+            background:#ffffff;
         }
 
         .search-input:focus{
@@ -220,9 +226,15 @@ $result = $stmt->get_result();
             border-bottom:1px solid #eeeeee;
             font-size:13px;
             vertical-align:middle;
+            background:#ffffff;
+            color:#333333;
         }
 
         tbody tr:hover{
+            background:#f8fbf8;
+        }
+
+        tbody tr:hover td{
             background:#f8fbf8;
         }
 
@@ -247,6 +259,58 @@ $result = $stmt->get_result();
             padding:14px 2px 0;
             font-size:13px;
             color:#777;
+        }
+
+        /* ================= CHILD LIST DARK MODE ================= */
+        body.dark-mode{
+            background:#0f172a;
+            color:#e5e7eb;
+        }
+
+        body.dark-mode .page-header,
+        body.dark-mode .content-card{
+            background:#111827;
+            border-color:#334155;
+        }
+
+        body.dark-mode .page-title,
+        body.dark-mode .child-name{
+            color:#f8fafc;
+        }
+
+        body.dark-mode .page-subtitle,
+        body.dark-mode .no-data{
+            color:#cbd5e1;
+        }
+
+        body.dark-mode .search-input{
+            background:#0f172a;
+            color:#f8fafc;
+            border-color:#475569;
+        }
+
+        body.dark-mode .btn-reset{
+            background:#1e293b;
+            color:#e5e7eb;
+            border-color:#334155;
+        }
+
+        body.dark-mode .table-wrapper{
+            border-color:#334155;
+        }
+
+        body.dark-mode td{
+            background:#111827;
+            color:#e5e7eb;
+            border-bottom:1px solid #334155;
+        }
+
+        body.dark-mode tbody tr:hover{
+            background:#1e293b;
+        }
+
+        body.dark-mode tbody tr:hover td{
+            background:#1e293b;
         }
 
         @media (max-width: 991px){
@@ -302,7 +366,7 @@ $result = $stmt->get_result();
         }
     </style>
 </head>
-<body>
+<body class="<?php echo ($theme_mode === 'dark') ? 'dark-mode' : ''; ?>">
 
 <?php include '../includes/cdw_topbar.php'; ?>
 <?php include '../includes/cdw_sidebar.php'; ?>

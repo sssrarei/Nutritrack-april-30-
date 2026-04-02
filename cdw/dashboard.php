@@ -7,6 +7,11 @@ if($_SESSION['role_id'] != 2){
     exit();
 }
 
+if (!isset($_SESSION['theme_mode'])) {
+    $_SESSION['theme_mode'] = 'light';
+}
+
+$theme_mode = $_SESSION['theme_mode'];
 $user_id = $_SESSION['user_id'];
 $error = "";
 
@@ -245,8 +250,7 @@ foreach($nutritional_graph_data as $item){
     <link rel="stylesheet" href="../assets/cdw-style.css">
     <link rel="stylesheet" href="../assets/cdw-dashboard.css">
 </head>
-<body>
-
+<body class="<?php echo ($theme_mode === 'dark') ? 'dark-mode' : ''; ?>">
 <?php include '../includes/cdw_topbar.php'; ?>
 <?php include '../includes/cdw_sidebar.php'; ?>
 

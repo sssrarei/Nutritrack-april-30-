@@ -5,25 +5,55 @@
     padding:0;
 }
 
+:root{
+    --page-bg:#eef0f3;
+    --card-bg:#ffffff;
+    --text-color:#333333;
+    --muted-text:#666666;
+    --border-color:#dcdcdc;
+    --input-bg:#ffffff;
+    --input-border:#cfcfcf;
+    --readonly-bg:#f5f5f5;
+    --hover-bg:#f4f7f4;
+    --active-bg:#e8f3e9;
+    --accent:#2E7D32;
+    --table-head:#f7f7f7;
+}
+
+body.dark-mode{
+    --page-bg:#0f172a;
+    --card-bg:#111827;
+    --text-color:#f8fafc;
+    --muted-text:#cbd5e1;
+    --border-color:#334155;
+    --input-bg:#0f172a;
+    --input-border:#475569;
+    --readonly-bg:#1e293b;
+    --hover-bg:#1e293b;
+    --active-bg:#1f3a28;
+    --accent:#4ade80;
+    --table-head:#1e293b;
+}
+
 body{
-    background:#eef0f3;
+    background:var(--page-bg);
     font-family:'Inter', sans-serif;
-    color:#333;
+    color:var(--text-color);
 }
 
 a{
     text-decoration:none;
 }
 
-/* ================= TOPBAR ================= */
+/* TOPBAR */
 .topbar{
     position:fixed;
     top:0;
     left:0;
     width:100%;
     height:80px;
-    background:#ffffff;
-    border-bottom:1px solid #dcdcdc;
+    background:var(--card-bg);
+    border-bottom:1px solid var(--border-color);
     display:flex;
     align-items:center;
     justify-content:space-between;
@@ -49,14 +79,13 @@ a{
 .menu-toggle span{
     width:20px;
     height:2px;
-    background:#333;
+    background:var(--text-color);
 }
 
 .topbar-logo{
     height:50px;
 }
 
-/* RIGHT SIDE */
 .topbar-right{
     display:flex;
     align-items:center;
@@ -66,35 +95,34 @@ a{
 .notif-text{
     font-size:10px;
     font-weight:600;
-    color:#444;
+    color:var(--text-color);
 }
 
 .user-text{
     font-size:10px;
     font-weight:600;
-    color:#2E7D32;
+    color:var(--accent);
 }
 
-/* ONLY LOGOUT MAY BOX */
 .logout-btn{
     padding:8px 14px;
-    border:1px solid #ccc;
+    border:1px solid var(--border-color);
     border-radius:8px;
-    background:#fff;
+    background:var(--card-bg);
     font-size:13px;
     font-weight:600;
-    color:#333;
+    color:var(--text-color);
 }
 
-/* ================= SIDEBAR ================= */
+/* SIDEBAR */
 .sidebar{
     position:fixed;
     top:80px;
     left:0;
     width:260px;
     height:calc(100vh - 80px);
-    background:#ffffff;
-    border-right:1px solid #dcdcdc;
+    background:var(--card-bg);
+    border-right:1px solid var(--border-color);
     overflow-y:auto;
     z-index:1050;
     transition:transform 0.25s ease;
@@ -108,13 +136,14 @@ a{
     padding:18px;
     font-family:'Poppins', sans-serif;
     font-weight:700;
+    color:var(--text-color);
 }
 
 .sidebar-label{
     padding:10px 18px;
     font-size:12px;
     font-weight:700;
-    color:#7a7a7a;
+    color:var(--muted-text);
 }
 
 .sidebar-section{
@@ -127,20 +156,19 @@ a{
     margin-bottom:6px;
     border-radius:8px;
     font-size:14px;
-    color:#333;
+    color:var(--text-color);
 }
 
 .sidebar-link:hover{
-    background:#f4f7f4;
+    background:var(--hover-bg);
 }
 
 .sidebar-link.active{
-    background:#e8f3e9;
-    color:#2E7D32;
+    background:var(--active-bg);
+    color:var(--accent);
     font-weight:700;
 }
 
-/* ================= CONTENT ================= */
 .main-content{
     margin-left:260px;
     padding:100px 24px 24px;
@@ -150,7 +178,60 @@ a{
     margin-left:0;
 }
 
-/* ================= MOBILE ================= */
+.sidebar-overlay{
+    display:none;
+}
+
+.sidebar-overlay.show{
+    display:block;
+    position:fixed;
+    top:80px;
+    left:0;
+    width:100%;
+    height:calc(100vh - 80px);
+    background:rgba(0,0,0,0.25);
+    z-index:1040;
+}
+
+/* GLOBAL HELPERS */
+.page-header,
+.content-card,
+.date-group-card,
+.child-block,
+.report-item,
+.prepared-by,
+.appearance-box{
+    background:var(--card-bg);
+    border-color:var(--border-color);
+    color:var(--text-color);
+}
+
+.form-control,
+input,
+select,
+textarea{
+    background:var(--input-bg);
+    color:var(--text-color);
+    border:1px solid var(--input-border);
+}
+
+input[readonly],
+textarea[readonly]{
+    background:var(--readonly-bg);
+}
+
+table th{
+    background:var(--table-head);
+    color:var(--text-color);
+    border-color:var(--border-color);
+}
+
+table td{
+    color:var(--text-color);
+    border-color:var(--border-color);
+}
+
+/* MOBILE */
 @media (max-width: 991px){
     .sidebar{
         transform:translateX(-100%);

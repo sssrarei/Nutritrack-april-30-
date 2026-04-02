@@ -7,11 +7,16 @@ if($_SESSION['role_id'] != 2){
     exit();
 }
 
+if (!isset($_SESSION['theme_mode'])) {
+    $_SESSION['theme_mode'] = 'light';
+}
+
 if(!isset($_SESSION['active_cdc_id'])){
     die("Please select an active CDC first from the dashboard.");
 }
 
 $cdc_id = $_SESSION['active_cdc_id'];
+$theme_mode = $_SESSION['theme_mode'];
 $success = "";
 $error = "";
 
@@ -356,6 +361,47 @@ if(isset($_POST['save'])){
             color:#fff;
         }
 
+        /* ================= ADD CHILD DARK MODE ================= */
+        body.dark-mode{
+            background:#0f172a;
+            color:#e5e7eb;
+        }
+
+        body.dark-mode .page-header,
+        body.dark-mode .form-card{
+            background:#111827;
+            border-color:#334155;
+        }
+
+        body.dark-mode .page-title,
+        body.dark-mode .section-title{
+            color:#f8fafc;
+        }
+
+        body.dark-mode .page-subtitle,
+        body.dark-mode .form-label,
+        body.dark-mode .optional{
+            color:#cbd5e1;
+        }
+
+        body.dark-mode .form-control,
+        body.dark-mode .form-select,
+        body.dark-mode .form-file{
+            background:#0f172a;
+            color:#f8fafc;
+            border-color:#475569;
+        }
+
+        body.dark-mode .radio-group label{
+            color:#e5e7eb;
+        }
+
+        body.dark-mode .btn-cancel{
+            background:#1e293b;
+            color:#e5e7eb;
+            border:1px solid #334155;
+        }
+
         @media (max-width: 991px){
             .sidebar{
                 transform:translateX(-100%);
@@ -411,7 +457,7 @@ if(isset($_POST['save'])){
         }
     </style>
 </head>
-<body>
+<body class="<?php echo ($theme_mode === 'dark') ? 'dark-mode' : ''; ?>">
 
 <?php include '../includes/cdw_topbar.php'; ?>
 <?php include '../includes/cdw_sidebar.php'; ?>

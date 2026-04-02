@@ -10,6 +10,10 @@ if($_SESSION['role_id'] != 2){
     exit();
 }
 
+if (!isset($_SESSION['theme_mode'])) {
+    $_SESSION['theme_mode'] = 'light';
+}
+
 if(!isset($_SESSION['active_cdc_id'])){
     die("Please select an active CDC first from the dashboard.");
 }
@@ -18,6 +22,7 @@ if(!isset($_GET['child_id']) || empty($_GET['child_id'])){
     die("No child selected.");
 }
 
+$theme_mode = $_SESSION['theme_mode'];
 $active_cdc_id = (int) $_SESSION['active_cdc_id'];
 $child_id = (int) $_GET['child_id'];
 
@@ -124,8 +129,62 @@ $medical_history = !empty($child['medical_history_file_path']) ? $child['medical
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../assets/cdw-style.css">
     <link rel="stylesheet" href="../assets/child_profile.css">
+
+    <style>
+        body.dark-mode{
+            background:#0f172a;
+            color:#e5e7eb;
+        }
+
+        body.dark-mode .back-link{
+            color:#86efac;
+        }
+
+        body.dark-mode .profile-header,
+        body.dark-mode .info-card,
+        body.dark-mode .side-action-card{
+            background:#111827;
+            border-color:#334155;
+        }
+
+        body.dark-mode .section-label,
+        body.dark-mode .profile-subtext,
+        body.dark-mode .info-label,
+        body.dark-mode .monitoring-text{
+            color:#cbd5e1;
+        }
+
+        body.dark-mode .profile-title,
+        body.dark-mode .card-title,
+        body.dark-mode .sub-section-title,
+        body.dark-mode .monitoring-title,
+        body.dark-mode .info-value{
+            color:#f8fafc;
+        }
+
+        body.dark-mode .info-row{
+            border-bottom-color:#334155;
+        }
+
+        body.dark-mode .access-code-badge{
+            background:#1e293b;
+            color:#f8fafc;
+            border:1px solid #334155;
+        }
+
+        body.dark-mode .btn-edit{
+            background:#1e293b;
+            color:#f8fafc;
+            border:1px solid #334155;
+        }
+
+        body.dark-mode .btn-monitoring{
+            background:#2E7D32;
+            color:#ffffff;
+        }
+    </style>
 </head>
-<body>
+<body class="<?php echo ($theme_mode === 'dark') ? 'dark-mode' : ''; ?>">
 
 <?php include '../includes/cdw_topbar.php'; ?>
 <?php include '../includes/cdw_sidebar.php'; ?>

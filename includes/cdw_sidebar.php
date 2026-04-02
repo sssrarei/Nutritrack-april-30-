@@ -31,15 +31,15 @@
 
     <div class="sidebar-label">Reports</div>
     <div class="sidebar-section">
-        <a href="wmr.php" class="sidebar-link <?php echo ($current_page == 'wmr.php') ? 'active' : ''; ?>">
+        <a href="wmr_report.php" class="sidebar-link <?php echo ($current_page == 'wmr.php') ? 'active' : ''; ?>">
             WMR
         </a>
 
-        <a href="masterlist.php" class="sidebar-link <?php echo ($current_page == 'masterlist.php') ? 'active' : ''; ?>">
+        <a href="masterlist_beneficiaries.php" class="sidebar-link <?php echo ($current_page == 'masterlist.php') ? 'active' : ''; ?>">
             Masterlist of Beneficiaries
         </a>
 
-        <a href="feeding_attendance.php" class="sidebar-link <?php echo ($current_page == 'feeding_attendance.php') ? 'active' : ''; ?>">
+        <a href="feeding_attendance_report.php" class="sidebar-link <?php echo ($current_page == 'feeding_attendance.php') ? 'active' : ''; ?>">
             Feeding Attendance
         </a>
 
@@ -56,6 +56,9 @@
     <div class="sidebar-section">
         <a href="settings.php" class="sidebar-link <?php echo ($current_page == 'settings.php') ? 'active' : ''; ?>">
             Settings
+        </a>
+         <a href="change_password.php" class="sidebar-link <?php echo ($current_page == 'change_password.php') ? 'active' : ''; ?>">
+            Change Password
         </a>
     </div>
 </div>

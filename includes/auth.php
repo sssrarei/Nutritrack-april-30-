@@ -20,4 +20,8 @@ function checkRole($allowed_role){
         exit();
     }
 }
+
+if (!isset($_SESSION['theme_mode'])) {
+    $_SESSION['theme_mode'] = 'light';
+}
 ?>
