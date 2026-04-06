@@ -171,6 +171,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $selected_cdc = isset($_POST['cdc_id']) ? intval($_POST['cdc_id']) : 0;
         $selected_category = isset($_POST['category']) ? trim($_POST['category']) : '';
         $optional_note = isset($_POST['optional_note']) ? trim($_POST['optional_note']) : '';
+        $reviewed_by = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : 0;
 
         $latest_wmr_rows = getLatestSubmittedWMRRowsPerCDC($conn, $selected_cdc);
         $children_to_save = [];
@@ -253,12 +254,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                        is_at_risk = ?,
                                        needs_counseling = ?,
                                        needs_referral = ?,
+                                       reviewed_by = ?,
+                                       is_reviewed = 1,
+                                       sent_to_guardian = 1,
+                                       sent_at = NOW(),
                                        status_note = ?,
                                        updated_at = CURRENT_TIMESTAMP
                                    WHERE guidance_id = ?";
                     $update_stmt = $conn->prepare($update_sql);
                     $update_stmt->bind_param(
-                        "isssiiisi",
+                        "isssiiiisi",
                         $submitted_report_id,
                         $original_status,
                         $guidance_text,
@@ -266,6 +271,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $is_at_risk,
                         $needs_counseling,
                         $needs_referral,
+                        $reviewed_by,
                         $status_note,
                         $guidance_id
                     );
@@ -285,11 +291,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         is_at_risk,
                                         needs_counseling,
                                         needs_referral,
+                                        reviewed_by,
+                                        is_reviewed,
+                                        sent_to_guardian,
+                                        sent_at,
                                         status_note
-                                   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                                   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 1, NOW(), ?)";
                     $insert_stmt = $conn->prepare($insert_sql);
                     $insert_stmt->bind_param(
-                        "iiissssiiis",
+                        "iiissssiiiis",
                         $child_id,
                         $record_id,
                         $submitted_report_id,
@@ -300,6 +310,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $is_at_risk,
                         $needs_counseling,
                         $needs_referral,
+                        $reviewed_by,
                         $status_note
                     );
 
@@ -310,7 +321,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             if ($saved_count > 0) {
-                $message = 'Batch intervention guidance saved successfully.';
+                $message = 'Batch intervention guidance saved and sent to guardian successfully.';
                 $message_type = 'success';
             } else {
                 $message = 'No intervention guidance records were saved.';

@@ -231,6 +231,95 @@ table td{
     border-color:var(--border-color);
 }
 
+/* GUARDIAN SUBMISSION SECTION */
+.guardian-submission-title{
+    margin-top:22px;
+}
+
+.guardian-submission-box{
+    margin-top:10px;
+    border:1px solid #dbe4ee;
+    border-radius:14px;
+    background:#f8fafc;
+    padding:14px 16px 16px;
+}
+
+.guardian-submission-message{
+    margin-top:16px;
+    margin-bottom:4px;
+    padding:12px 14px;
+    border-radius:10px;
+    font-size:13px;
+    font-weight:600;
+}
+
+.guardian-submission-message.success{
+    background:#e8f5e9;
+    color:#2e7d32;
+    border:1px solid #c8e6c9;
+}
+
+.pending-status{
+    color:#c27c0e;
+    font-weight:700;
+}
+
+.guardian-submission-actions{
+    margin-top:16px;
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+}
+
+.guardian-submission-form{
+    margin:0;
+}
+
+.btn-guardian-approve,
+.btn-guardian-reject{
+    border:none;
+    border-radius:10px;
+    padding:10px 14px;
+    font-size:13px;
+    font-weight:600;
+    font-family:'Inter', sans-serif;
+    cursor:pointer;
+    transition:0.2s ease;
+}
+
+.btn-guardian-approve{
+    background:#2E7D32;
+    color:#fff;
+}
+
+.btn-guardian-approve:hover{
+    background:#256628;
+}
+
+.btn-guardian-reject{
+    background:#c0392b;
+    color:#fff;
+}
+
+.btn-guardian-reject:hover{
+    background:#a93226;
+}
+
+body.dark-mode .guardian-submission-box{
+    background:#0f172a;
+    border-color:#334155;
+}
+
+body.dark-mode .guardian-submission-message.success{
+    background:#16351d;
+    color:#bbf7d0;
+    border-color:#2f6a3f;
+}
+
+body.dark-mode .pending-status{
+    color:#fbbf24;
+}
+
 /* MOBILE */
 @media (max-width: 991px){
     .sidebar{

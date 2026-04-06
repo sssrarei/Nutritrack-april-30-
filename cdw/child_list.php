@@ -16,7 +16,7 @@ if(!isset($_SESSION['active_cdc_id'])){
 }
 
 $cdc_id = $_SESSION['active_cdc_id'];
-$search = "";
+$search = isset($_GET['search']) ? trim($_GET['search']) : '';
 $theme_mode = $_SESSION['theme_mode'];
 
 function compute_age_months_from_birthdate($birthdate){
@@ -35,32 +35,32 @@ function compute_age_months_from_birthdate($birthdate){
     }
 }
 
-$sql = "SELECT child_id, first_name, middle_name, last_name, sex, birthdate
-        FROM children
-        WHERE cdc_id = ?";
+if ($search !== "") {
+    $child_sql = "SELECT child_id, first_name, middle_name, last_name, sex, birthdate
+                  FROM children
+                  WHERE cdc_id = ?
+                    AND (
+                        first_name LIKE ?
+                        OR middle_name LIKE ?
+                        OR last_name LIKE ?
+                    )
+                  ORDER BY first_name ASC, last_name ASC";
 
-if(isset($_GET['search']) && !empty(trim($_GET['search']))){
-    $search = trim($_GET['search']);
-    $sql .= " AND (
-        first_name LIKE ? OR
-        middle_name LIKE ? OR
-        last_name LIKE ?
-    )";
-}
-
-$sql .= " ORDER BY first_name ASC, last_name ASC";
-
-$stmt = $conn->prepare($sql);
-
-if($search !== ""){
+    $child_stmt = $conn->prepare($child_sql);
     $search_param = "%" . $search . "%";
-    $stmt->bind_param("isss", $cdc_id, $search_param, $search_param, $search_param);
+    $child_stmt->bind_param("isss", $cdc_id, $search_param, $search_param, $search_param);
 } else {
-    $stmt->bind_param("i", $cdc_id);
+    $child_sql = "SELECT child_id, first_name, middle_name, last_name, sex, birthdate
+                  FROM children
+                  WHERE cdc_id = ?
+                  ORDER BY first_name ASC, last_name ASC";
+
+    $child_stmt = $conn->prepare($child_sql);
+    $child_stmt->bind_param("i", $cdc_id);
 }
 
-$stmt->execute();
-$result = $stmt->get_result();
+$child_stmt->execute();
+$child_result = $child_stmt->get_result();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -70,6 +70,7 @@ $result = $stmt->get_result();
     <title>Pupil Records | NutriTrack</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../assets/cdw-style.css">
+    <link rel="stylesheet" href="../assets/cdw-topbar-notification.css">
     <style>
         *{
             box-sizing:border-box;
@@ -261,7 +262,6 @@ $result = $stmt->get_result();
             color:#777;
         }
 
-        /* ================= CHILD LIST DARK MODE ================= */
         body.dark-mode{
             background:#0f172a;
             color:#e5e7eb;
@@ -400,7 +400,7 @@ $result = $stmt->get_result();
             <a href="add_child.php" class="btn btn-add">+ Add Child</a>
         </div>
 
-        <?php if($result && $result->num_rows > 0){ ?>
+        <?php if($child_result && $child_result->num_rows > 0){ ?>
             <div class="table-wrapper">
                 <table>
                     <thead>
@@ -413,7 +413,7 @@ $result = $stmt->get_result();
                         </tr>
                     </thead>
                     <tbody>
-                        <?php while($row = $result->fetch_assoc()){
+                        <?php while($row = $child_result->fetch_assoc()){
                             $middle_name = !empty($row['middle_name']) ? $row['middle_name'] . " " : "";
                             $full_name = trim($row['first_name'] . " " . $middle_name . $row['last_name']);
                             $age_months = compute_age_months_from_birthdate($row['birthdate']);

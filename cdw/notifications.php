@@ -37,6 +37,7 @@ $result = $notifications->get_result();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Notifications</title>
     <link rel="stylesheet" href="../assets/cdw-style.css">
+    <link rel="stylesheet" href="../assets/cdw-topbar-notification.css">
     <style>
         body {
             background: #f4f6f9;

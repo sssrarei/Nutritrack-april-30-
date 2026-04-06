@@ -199,6 +199,7 @@ if($selected_cdc_id > 0){
 
     <link rel="stylesheet" href="../assets/cdw-style.css">
     <link rel="stylesheet" href="../assets/milk_feeding.css">
+    <link rel="stylesheet" href="../assets/cdw-topbar-notification.css">
 </head>
 <body>
 

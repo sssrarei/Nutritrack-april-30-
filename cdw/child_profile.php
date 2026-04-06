@@ -55,6 +55,11 @@ $sql = "
 ";
 
 $stmt = $conn->prepare($sql);
+
+if(!$stmt){
+    die("Prepare error: " . $conn->error);
+}
+
 $stmt->bind_param("ii", $child_id, $active_cdc_id);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -68,6 +73,7 @@ if($result->num_rows == 0){
 }
 
 $child = $result->fetch_assoc();
+$stmt->close();
 
 $child_full_name = trim(
     $child['first_name'] . ' ' .
@@ -119,6 +125,203 @@ $vaccination_records = !empty($child['vaccination_card_file_path']) ? $child['va
 $allergies = !empty($child['allergies']) ? $child['allergies'] : 'N/A';
 $comorbidities = !empty($child['comorbidities']) ? $child['comorbidities'] : 'N/A';
 $medical_history = !empty($child['medical_history_file_path']) ? $child['medical_history_file_path'] : 'N/A';
+
+function renderFileOrText($value){
+    if (empty($value) || $value === 'N/A') {
+        return 'N/A';
+    }
+
+    $value = trim($value);
+    $safe_value = htmlspecialchars($value);
+
+    if (preg_match('/(\.\.\/uploads\/[^\s]+|uploads\/[^\s]+)/i', $value, $matches)) {
+        $file_path = trim($matches[1]);
+        $safe_file_path = htmlspecialchars($file_path);
+
+        $text_only = trim(str_replace($file_path, '', $value));
+        $text_only = trim(str_replace('Medical Attached File:', '', $text_only));
+        $text_only = trim(str_replace('Vaccination Attached File:', '', $text_only));
+
+        $html = '';
+
+        if (!empty($text_only)) {
+            $html .= '<div>' . nl2br(htmlspecialchars($text_only)) . '</div>';
+        }
+
+        $html .= '<a href="' . $safe_file_path . '" target="_blank" class="file-link">View Attached File</a>';
+
+        return $html;
+    }
+
+    return nl2br($safe_value);
+}
+
+$guardian_submission = null;
+$guardian_submission_message = '';
+$guardian_submission_feature_enabled = false;
+
+$table_check_sql = "SHOW TABLES LIKE 'guardian_health_submissions'";
+$table_check_result = $conn->query($table_check_sql);
+
+if ($table_check_result && $table_check_result->num_rows > 0) {
+    $guardian_submission_feature_enabled = true;
+}
+
+if ($guardian_submission_feature_enabled && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardian_submission_action'])) {
+    $submission_id = isset($_POST['submission_id']) ? (int)$_POST['submission_id'] : 0;
+    $action = trim($_POST['guardian_submission_action']);
+    $reviewed_by = (int)$_SESSION['user_id'];
+
+    $submission_sql = "
+        SELECT *
+        FROM guardian_health_submissions
+        WHERE submission_id = ?
+          AND child_id = ?
+          AND status = 'Pending'
+        LIMIT 1
+    ";
+
+    $submission_stmt = $conn->prepare($submission_sql);
+
+    if ($submission_stmt) {
+        $submission_stmt->bind_param("ii", $submission_id, $child_id);
+        $submission_stmt->execute();
+        $submission_result = $submission_stmt->get_result();
+        $submission_row = $submission_result->fetch_assoc();
+        $submission_stmt->close();
+
+        if ($submission_row) {
+            if ($action === 'approve') {
+                $check_health_sql = "SELECT child_id FROM child_health_information WHERE child_id = ? LIMIT 1";
+                $check_health_stmt = $conn->prepare($check_health_sql);
+
+                if ($check_health_stmt) {
+                    $check_health_stmt->bind_param("i", $child_id);
+                    $check_health_stmt->execute();
+                    $check_health_result = $check_health_stmt->get_result();
+                    $health_exists = $check_health_result->num_rows > 0;
+                    $check_health_stmt->close();
+
+                    if ($health_exists) {
+                        $update_health_sql = "
+                            UPDATE child_health_information
+                            SET vaccination_card_file_path = ?,
+                                allergies = ?,
+                                comorbidities = ?,
+                                medical_history_file_path = ?
+                            WHERE child_id = ?
+                        ";
+                        $update_health_stmt = $conn->prepare($update_health_sql);
+
+                        if ($update_health_stmt) {
+                            $update_health_stmt->bind_param(
+                                "ssssi",
+                                $submission_row['vaccination_card_file_path'],
+                                $submission_row['allergies'],
+                                $submission_row['comorbidities'],
+                                $submission_row['medical_history_file_path'],
+                                $child_id
+                            );
+                            $update_health_stmt->execute();
+                            $update_health_stmt->close();
+                        }
+                    } else {
+                        $insert_health_sql = "
+                            INSERT INTO child_health_information (
+                                child_id,
+                                vaccination_card_file_path,
+                                allergies,
+                                comorbidities,
+                                medical_history_file_path
+                            ) VALUES (?, ?, ?, ?, ?)
+                        ";
+                        $insert_health_stmt = $conn->prepare($insert_health_sql);
+
+                        if ($insert_health_stmt) {
+                            $insert_health_stmt->bind_param(
+                                "issss",
+                                $child_id,
+                                $submission_row['vaccination_card_file_path'],
+                                $submission_row['allergies'],
+                                $submission_row['comorbidities'],
+                                $submission_row['medical_history_file_path']
+                            );
+                            $insert_health_stmt->execute();
+                            $insert_health_stmt->close();
+                        }
+                    }
+
+                    $approve_sql = "
+                        UPDATE guardian_health_submissions
+                        SET status = 'Applied',
+                            reviewed_by = ?,
+                            reviewed_at = NOW()
+                        WHERE submission_id = ?
+                    ";
+                    $approve_stmt = $conn->prepare($approve_sql);
+
+                    if ($approve_stmt) {
+                        $approve_stmt->bind_param("ii", $reviewed_by, $submission_id);
+                        $approve_stmt->execute();
+                        $approve_stmt->close();
+                    }
+
+                    header("Location: child_profile.php?child_id=" . $child_id . "&guardian_submission=applied");
+                    exit();
+                }
+            }
+
+            if ($action === 'reject') {
+                $reject_sql = "
+                    UPDATE guardian_health_submissions
+                    SET status = 'Rejected',
+                        reviewed_by = ?,
+                        reviewed_at = NOW()
+                    WHERE submission_id = ?
+                ";
+                $reject_stmt = $conn->prepare($reject_sql);
+
+                if ($reject_stmt) {
+                    $reject_stmt->bind_param("ii", $reviewed_by, $submission_id);
+                    $reject_stmt->execute();
+                    $reject_stmt->close();
+                }
+
+                header("Location: child_profile.php?child_id=" . $child_id . "&guardian_submission=rejected");
+                exit();
+            }
+        }
+    }
+}
+
+if ($guardian_submission_feature_enabled && isset($_GET['guardian_submission'])) {
+    if ($_GET['guardian_submission'] === 'applied') {
+        $guardian_submission_message = "Guardian health information was approved and applied to the child's official health record.";
+    } elseif ($_GET['guardian_submission'] === 'rejected') {
+        $guardian_submission_message = "Guardian health information submission was rejected.";
+    }
+}
+
+if ($guardian_submission_feature_enabled) {
+    $guardian_submission_sql = "
+        SELECT *
+        FROM guardian_health_submissions
+        WHERE child_id = ?
+          AND status = 'Pending'
+        ORDER BY submitted_at DESC, submission_id DESC
+        LIMIT 1
+    ";
+
+    $guardian_submission_stmt = $conn->prepare($guardian_submission_sql);
+
+    if ($guardian_submission_stmt) {
+        $guardian_submission_stmt->bind_param("i", $child_id);
+        $guardian_submission_stmt->execute();
+        $guardian_submission_result = $guardian_submission_stmt->get_result();
+        $guardian_submission = $guardian_submission_result->fetch_assoc();
+        $guardian_submission_stmt->close();
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -129,6 +332,7 @@ $medical_history = !empty($child['medical_history_file_path']) ? $child['medical
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../assets/cdw-style.css">
     <link rel="stylesheet" href="../assets/child_profile.css">
+    <link rel="stylesheet" href="../assets/cdw-topbar-notification.css">
 
     <style>
         body.dark-mode{
@@ -254,7 +458,7 @@ $medical_history = !empty($child['medical_history_file_path']) ? $child['medical
             <div class="info-list">
                 <div class="info-row">
                     <span class="info-label">Vaccination Records</span>
-                    <div class="info-value"><?php echo htmlspecialchars($vaccination_records); ?></div>
+                    <div class="info-value"><?php echo renderFileOrText($vaccination_records); ?></div>
                 </div>
 
                 <div class="info-row">
@@ -269,9 +473,82 @@ $medical_history = !empty($child['medical_history_file_path']) ? $child['medical
 
                 <div class="info-row">
                     <span class="info-label">Medical History</span>
-                    <div class="info-value"><?php echo htmlspecialchars($medical_history); ?></div>
+                    <div class="info-value"><?php echo renderFileOrText($medical_history); ?></div>
                 </div>
             </div>
+
+            <?php if (!empty($guardian_submission_message)) { ?>
+                <div class="guardian-submission-message success">
+                    <?php echo htmlspecialchars($guardian_submission_message); ?>
+                </div>
+            <?php } ?>
+
+            <?php if ($guardian_submission_feature_enabled && $guardian_submission) { ?>
+                <h4 class="sub-section-title guardian-submission-title">Guardian Submitted Health Information</h4>
+
+                <div class="guardian-submission-box">
+                    <div class="info-list">
+                        <div class="info-row">
+                            <span class="info-label">Guardian Name</span>
+                            <div class="info-value"><?php echo htmlspecialchars($guardian_submission['guardian_name']); ?></div>
+                        </div>
+
+                        <div class="info-row">
+                            <span class="info-label">Date Submitted</span>
+                            <div class="info-value"><?php echo htmlspecialchars(date("F d, Y g:i A", strtotime($guardian_submission['submitted_at']))); ?></div>
+                        </div>
+
+                        <div class="info-row">
+                            <span class="info-label">Status</span>
+                            <div class="info-value pending-status"><?php echo htmlspecialchars($guardian_submission['status']); ?></div>
+                        </div>
+
+                        <div class="info-row">
+                            <span class="info-label">Vaccination Records</span>
+                            <div class="info-value">
+                                <?php echo renderFileOrText(!empty($guardian_submission['vaccination_card_file_path']) ? $guardian_submission['vaccination_card_file_path'] : 'N/A'); ?>
+                            </div>
+                        </div>
+
+                        <div class="info-row">
+                            <span class="info-label">Allergies</span>
+                            <div class="info-value">
+                                <?php echo !empty($guardian_submission['allergies']) ? htmlspecialchars($guardian_submission['allergies']) : 'N/A'; ?>
+                            </div>
+                        </div>
+
+                        <div class="info-row">
+                            <span class="info-label">Comorbidities</span>
+                            <div class="info-value">
+                                <?php echo !empty($guardian_submission['comorbidities']) ? htmlspecialchars($guardian_submission['comorbidities']) : 'N/A'; ?>
+                            </div>
+                        </div>
+
+                        <div class="info-row">
+                            <span class="info-label">Medical History</span>
+                            <div class="info-value">
+                                <?php echo renderFileOrText(!empty($guardian_submission['medical_history_file_path']) ? $guardian_submission['medical_history_file_path'] : 'N/A'); ?>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="guardian-submission-actions">
+                        <form method="POST" class="guardian-submission-form">
+                            <input type="hidden" name="submission_id" value="<?php echo (int)$guardian_submission['submission_id']; ?>">
+                            <button type="submit" name="guardian_submission_action" value="approve" class="btn-guardian-approve">
+                                Approve / Apply
+                            </button>
+                        </form>
+
+                        <form method="POST" class="guardian-submission-form">
+                            <input type="hidden" name="submission_id" value="<?php echo (int)$guardian_submission['submission_id']; ?>">
+                            <button type="submit" name="guardian_submission_action" value="reject" class="btn-guardian-reject">
+                                Reject
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            <?php } ?>
 
             <div class="card-actions">
                 <a href="edit_child.php?child_id=<?php echo $child['child_id']; ?>" class="btn-edit">Edit Child Information</a>

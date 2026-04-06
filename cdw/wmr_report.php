@@ -286,6 +286,7 @@ if($data['error'] !== ''){
     <title>Weight Monitoring Report | NutriTrack</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../assets/cdw-style.css">
+    <link rel="stylesheet" href="../assets/cdw-topbar-notification.css">
     <style>
         *{
             box-sizing:border-box;

@@ -198,6 +198,7 @@ if($selected_cdc_id > 0){
 
     <link rel="stylesheet" href="../assets/cdw-style.css">
     <link rel="stylesheet" href="../assets/deworming.css">
+    <link rel="stylesheet" href="../assets/cdw-topbar-notification.css">
 </head>
 <body>
 

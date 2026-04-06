@@ -257,6 +257,7 @@ function status_class($status) {
     <title>Nutritional Monitoring | NutriTrack</title>
     <link rel="stylesheet" href="../assets/cdw-style.css">
     <link rel="stylesheet" href="../assets/nutritional_monitoring.css">
+    <link rel="stylesheet" href="../assets/cdw-topbar-notification.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
