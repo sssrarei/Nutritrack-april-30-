@@ -22,14 +22,6 @@ function table_exists($conn, $table_name) {
     return ($result && mysqli_num_rows($result) > 0);
 }
 
-function column_exists($conn, $table_name, $column_name) {
-    $table_name = mysqli_real_escape_string($conn, $table_name);
-    $column_name = mysqli_real_escape_string($conn, $column_name);
-    $sql = "SHOW COLUMNS FROM `$table_name` LIKE '$column_name'";
-    $result = mysqli_query($conn, $sql);
-    return ($result && mysqli_num_rows($result) > 0);
-}
-
 function compute_age_in_months($birthdate, $record_date) {
     try {
         $birth = new DateTime($birthdate);
@@ -170,11 +162,7 @@ if (table_exists($conn, 'deworming_records')) {
 
 /* =========================
    FEEDING HISTORY
-   FIXED BASED ON ACTUAL TABLES:
-   feeding_records
-   feeding_record_items
-   food_groups
-   food_items
+   GROUPED BY DATE / RECORD
 ========================= */
 $feeding_history = [];
 
@@ -185,27 +173,41 @@ if (
     table_exists($conn, 'food_items')
 ) {
     $feeding_sql = "
-        SELECT 
+        SELECT
+            fr.feeding_record_id,
             fr.feeding_date,
-            fg.food_group_name AS food_group,
-            fi.food_item_name AS food_item,
-            CASE
-                WHEN fri.measurement_text IS NOT NULL AND fri.measurement_text != ''
-                    THEN fri.measurement_text
-                WHEN fri.quantity IS NOT NULL
-                    THEN TRIM(TRAILING '.00' FROM fri.quantity)
-                ELSE NULL
-            END AS amount,
-            fr.remarks
+            fr.attendance,
+            fr.remarks,
+            GROUP_CONCAT(
+                CASE
+                    WHEN fi.food_item_name IS NOT NULL AND fi.food_item_name != '' THEN
+                        CONCAT(
+                            COALESCE(fg.food_group_name, 'Uncategorized'),
+                            ' - ',
+                            fi.food_item_name,
+                            CASE
+                                WHEN fri.measurement_text IS NOT NULL AND fri.measurement_text != ''
+                                    THEN CONCAT(' (', fri.measurement_text, ')')
+                                WHEN fri.quantity IS NOT NULL
+                                    THEN CONCAT(' (', TRIM(TRAILING '.00' FROM fri.quantity), ')')
+                                ELSE ''
+                            END
+                        )
+                    ELSE NULL
+                END
+                ORDER BY fri.feeding_item_id ASC
+                SEPARATOR '||'
+            ) AS food_details
         FROM feeding_records fr
-        LEFT JOIN feeding_record_items fri 
+        LEFT JOIN feeding_record_items fri
             ON fr.feeding_record_id = fri.feeding_record_id
-        LEFT JOIN food_groups fg 
+        LEFT JOIN food_groups fg
             ON fri.food_group_id = fg.food_group_id
-        LEFT JOIN food_items fi 
+        LEFT JOIN food_items fi
             ON fri.food_item_id = fi.food_item_id
         WHERE fr.child_id = ?
-        ORDER BY fr.feeding_date DESC, fr.feeding_record_id DESC, fri.feeding_item_id DESC
+        GROUP BY fr.feeding_record_id, fr.feeding_date, fr.attendance, fr.remarks
+        ORDER BY fr.feeding_date DESC, fr.feeding_record_id DESC
         LIMIT 10
     ";
 
@@ -273,7 +275,6 @@ function status_class($status) {
             </div>
             <div class="header-actions">
                 <a href="child_profile.php?child_id=<?php echo $child_id; ?>" class="btn-secondary">Back to Child Profile</a>
-                <a href="anthropometric_records.php?child_id=<?php echo $child_id; ?>" class="btn-primary">Open Anthropometric Records</a>
             </div>
         </div>
 
@@ -439,9 +440,8 @@ function status_class($status) {
                         <thead>
                             <tr>
                                 <th>Date</th>
-                                <th>Food Group</th>
-                                <th>Food Item</th>
-                                <th>Amount</th>
+                                <th>Attendance</th>
+                                <th>Food Details</th>
                                 <th>Remarks</th>
                             </tr>
                         </thead>
@@ -457,9 +457,23 @@ function status_class($status) {
                                         }
                                         ?>
                                     </td>
-                                    <td><?php echo safe_value($row['food_group']); ?></td>
-                                    <td><?php echo safe_value($row['food_item']); ?></td>
-                                    <td><?php echo safe_value($row['amount']); ?></td>
+                                    <td><?php echo safe_value($row['attendance']); ?></td>
+                                    <td>
+                                        <?php
+                                        if (strtolower((string)$row['attendance']) === 'absent') {
+                                            echo 'Absent';
+                                        } elseif (!empty($row['food_details'])) {
+                                            $foods = explode('||', $row['food_details']);
+                                            echo '<ul style="margin:0; padding-left:18px;">';
+                                            foreach ($foods as $food) {
+                                                echo '<li style="margin-bottom:4px;">' . htmlspecialchars($food) . '</li>';
+                                            }
+                                            echo '</ul>';
+                                        } else {
+                                            echo 'N/A';
+                                        }
+                                        ?>
+                                    </td>
                                     <td><?php echo safe_value($row['remarks']); ?></td>
                                 </tr>
                             <?php } ?>

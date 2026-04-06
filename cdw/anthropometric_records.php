@@ -27,6 +27,7 @@ $form_height = '';
 $form_weight = '';
 $form_muac = '';
 $form_place_of_measurement = '';
+$form_assessment_type = 'monthly_followup';
 
 /* =========================================================
    HELPERS
@@ -78,6 +79,28 @@ function status_badge($status){
     return '<span class="status-badge status-alert">' . htmlspecialchars($status) . '</span>';
 }
 
+function assessment_type_label($assessment_type){
+    $assessment_type = strtolower(trim((string)$assessment_type));
+
+    switch($assessment_type){
+        case 'baseline':
+            return 'Baseline';
+        case 'monthly_followup':
+            return 'Monthly Follow-Up';
+        case 'midline':
+            return 'Midline';
+        case 'endline':
+            return 'Endline';
+        default:
+            return 'N/A';
+    }
+}
+
+function is_valid_assessment_type($assessment_type){
+    $allowed = ['baseline', 'monthly_followup', 'midline', 'endline'];
+    return in_array($assessment_type, $allowed, true);
+}
+
 /* =========================================================
    SAVE / UPDATE RECORD
 ========================================================= */
@@ -90,12 +113,14 @@ if(!$view_only && isset($_POST['save_record'])){
     $weight = trim($_POST['weight']);
     $muac = trim($_POST['muac']);
     $place_of_measurement = trim($_POST['place_of_measurement']);
+    $assessment_type = isset($_POST['assessment_type']) ? trim($_POST['assessment_type']) : '';
 
     $form_date_recorded = $date_recorded;
     $form_height = $height;
     $form_weight = $weight;
     $form_muac = $muac;
     $form_place_of_measurement = $place_of_measurement;
+    $form_assessment_type = $assessment_type;
 
     $child_stmt = $conn->prepare("
         SELECT child_id, birthdate, sex, cdc_id
@@ -109,8 +134,10 @@ if(!$view_only && isset($_POST['save_record'])){
 
     if($child_result->num_rows == 0){
         $error = "Invalid child selected.";
-    } elseif(empty($date_recorded) || $height === '' || $weight === '' || $muac === '' || $place_of_measurement === ''){
+    } elseif(empty($date_recorded) || $height === '' || $weight === '' || $muac === '' || $place_of_measurement === '' || empty($assessment_type)){
         $error = "Please complete all required fields.";
+    } elseif(!is_valid_assessment_type($assessment_type)){
+        $error = "Invalid assessment type selected.";
     } elseif(!is_numeric($height) || !is_numeric($weight) || !is_numeric($muac)){
         $error = "Height, weight, and MUAC must be numeric values.";
     } elseif((float)$height <= 0 || (float)$weight <= 0 || (float)$muac <= 0){
@@ -129,95 +156,144 @@ if(!$view_only && isset($_POST['save_record'])){
             $weight_val = (float)$weight;
             $muac_val = (float)$muac;
 
-            $wfa_status = nnc_get_wfa_status($conn, $sex, $age_months, $weight_val);
-            $hfa_status = nnc_get_hfa_status($conn, $sex, $age_months, $height_val);
-            $wflh_status = nnc_get_wflh_status($conn, $sex, $age_months, $height_val, $weight_val);
+            /* =========================================================
+               ASSESSMENT TYPE VALIDATION RULES
+            ========================================================= */
+            $check_existing_stmt = $conn->prepare("
+                SELECT record_id, assessment_type, date_recorded
+                FROM anthropometric_records
+                WHERE child_id = ?
+            ");
+            $check_existing_stmt->bind_param("i", $child_id_post);
+            $check_existing_stmt->execute();
+            $existing_records = $check_existing_stmt->get_result();
 
-            if($edit_record_id > 0){
-                $check_edit_stmt = $conn->prepare("
-                    SELECT ar.record_id
-                    FROM anthropometric_records ar
-                    INNER JOIN children c ON ar.child_id = c.child_id
-                    WHERE ar.record_id = ? AND ar.child_id = ? AND c.cdc_id = ?
-                    LIMIT 1
-                ");
-                $check_edit_stmt->bind_param("iii", $edit_record_id, $child_id_post, $active_cdc_id);
-                $check_edit_stmt->execute();
-                $check_edit_result = $check_edit_stmt->get_result();
+            $has_baseline = false;
 
-                if($check_edit_result->num_rows == 0){
-                    $error = "Invalid record selected for editing.";
+            while($existing_row = $existing_records->fetch_assoc()){
+                $existing_record_id = (int)$existing_row['record_id'];
+                $existing_type = trim((string)$existing_row['assessment_type']);
+                $existing_date = trim((string)$existing_row['date_recorded']);
+
+                if($edit_record_id > 0 && $existing_record_id === $edit_record_id){
+                    continue;
+                }
+
+                if($existing_type === 'baseline'){
+                    $has_baseline = true;
+                }
+
+                if($existing_type === $assessment_type && $existing_date === $date_recorded){
+                    $error = "Duplicate record: same assessment type and date already exists.";
+                    break;
+                }
+            }
+
+            if(empty($error)){
+                if($assessment_type === 'baseline' && $has_baseline){
+                    $error = "Only one baseline record is allowed per child.";
+                } elseif($assessment_type === 'midline' && !$has_baseline){
+                    $error = "Midline cannot be recorded without a baseline.";
+                } elseif($assessment_type === 'endline' && !$has_baseline){
+                    $error = "Endline cannot be recorded without a baseline.";
+                }
+            }
+
+            if(empty($error)){
+                $wfa_status = nnc_get_wfa_status($conn, $sex, $age_months, $weight_val);
+                $hfa_status = nnc_get_hfa_status($conn, $sex, $age_months, $height_val);
+                $wflh_status = nnc_get_wflh_status($conn, $sex, $age_months, $height_val, $weight_val);
+
+                if($edit_record_id > 0){
+                    $check_edit_stmt = $conn->prepare("
+                        SELECT ar.record_id
+                        FROM anthropometric_records ar
+                        INNER JOIN children c ON ar.child_id = c.child_id
+                        WHERE ar.record_id = ? AND ar.child_id = ? AND c.cdc_id = ?
+                        LIMIT 1
+                    ");
+                    $check_edit_stmt->bind_param("iii", $edit_record_id, $child_id_post, $active_cdc_id);
+                    $check_edit_stmt->execute();
+                    $check_edit_result = $check_edit_stmt->get_result();
+
+                    if($check_edit_result->num_rows == 0){
+                        $error = "Invalid record selected for editing.";
+                    } else {
+                        $update_stmt = $conn->prepare("
+                            UPDATE anthropometric_records
+                            SET height = ?, weight = ?, muac = ?, date_recorded = ?, age_months = ?, place_of_measurement = ?, wfa_status = ?, hfa_status = ?, wflh_status = ?, assessment_type = ?, recorded_by = ?
+                            WHERE record_id = ? AND child_id = ?
+                        ");
+
+                        $update_stmt->bind_param(
+                            "dddsisssssiii",
+                            $height_val,
+                            $weight_val,
+                            $muac_val,
+                            $date_recorded,
+                            $age_months,
+                            $place_of_measurement,
+                            $wfa_status,
+                            $hfa_status,
+                            $wflh_status,
+                            $assessment_type,
+                            $user_id,
+                            $edit_record_id,
+                            $child_id_post
+                        );
+
+                        if($update_stmt->execute()){
+                            $success = "Anthropometric record updated successfully.";
+                            $child_id = $child_id_post;
+                            $edit_id = 0;
+                            $form_date_recorded = '';
+                            $form_height = '';
+                            $form_weight = '';
+                            $form_muac = '';
+                            $form_place_of_measurement = '';
+                            $form_assessment_type = 'monthly_followup';
+                        } else {
+                            $error = "Error updating record: " . $conn->error;
+                            $child_id = $child_id_post;
+                            $edit_id = $edit_record_id;
+                        }
+                    }
                 } else {
-                    $update_stmt = $conn->prepare("
-                        UPDATE anthropometric_records
-                        SET height = ?, weight = ?, muac = ?, date_recorded = ?, age_months = ?, place_of_measurement = ?, wfa_status = ?, hfa_status = ?, wflh_status = ?, recorded_by = ?
-                        WHERE record_id = ? AND child_id = ?
+                    $insert_stmt = $conn->prepare("
+                        INSERT INTO anthropometric_records
+                        (child_id, height, weight, muac, date_recorded, age_months, place_of_measurement, assessment_type, wfa_status, hfa_status, wflh_status, recorded_by)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ");
 
-                    $update_stmt->bind_param(
-                        "dddsissssiii",
+                    $insert_stmt->bind_param(
+                        "idddsisssssi",
+                        $child_id_post,
                         $height_val,
                         $weight_val,
                         $muac_val,
                         $date_recorded,
                         $age_months,
                         $place_of_measurement,
+                        $assessment_type,
                         $wfa_status,
                         $hfa_status,
                         $wflh_status,
-                        $user_id,
-                        $edit_record_id,
-                        $child_id_post
+                        $user_id
                     );
 
-                    if($update_stmt->execute()){
-                        $success = "Anthropometric record updated successfully.";
+                    if($insert_stmt->execute()){
+                        $success = "Anthropometric record saved successfully.";
                         $child_id = $child_id_post;
-                        $edit_id = 0;
                         $form_date_recorded = '';
                         $form_height = '';
                         $form_weight = '';
                         $form_muac = '';
                         $form_place_of_measurement = '';
+                        $form_assessment_type = 'monthly_followup';
                     } else {
-                        $error = "Error updating record: " . $conn->error;
+                        $error = "Error saving record: " . $conn->error;
                         $child_id = $child_id_post;
-                        $edit_id = $edit_record_id;
                     }
-                }
-            } else {
-                $insert_stmt = $conn->prepare("
-                    INSERT INTO anthropometric_records
-                    (child_id, height, weight, muac, date_recorded, age_months, place_of_measurement, wfa_status, hfa_status, wflh_status, recorded_by)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ");
-
-                $insert_stmt->bind_param(
-                    "idddsissssi",
-                    $child_id_post,
-                    $height_val,
-                    $weight_val,
-                    $muac_val,
-                    $date_recorded,
-                    $age_months,
-                    $place_of_measurement,
-                    $wfa_status,
-                    $hfa_status,
-                    $wflh_status,
-                    $user_id
-                );
-
-                if($insert_stmt->execute()){
-                    $success = "Anthropometric record saved successfully.";
-                    $child_id = $child_id_post;
-                    $form_date_recorded = '';
-                    $form_height = '';
-                    $form_weight = '';
-                    $form_muac = '';
-                    $form_place_of_measurement = '';
-                } else {
-                    $error = "Error saving record: " . $conn->error;
-                    $child_id = $child_id_post;
                 }
             }
         }
@@ -299,6 +375,7 @@ if($child_id > 0){
             $form_weight = $edit_data['weight'];
             $form_muac = $edit_data['muac'];
             $form_place_of_measurement = $edit_data['place_of_measurement'];
+            $form_assessment_type = !empty($edit_data['assessment_type']) ? $edit_data['assessment_type'] : 'monthly_followup';
         } else {
             $edit_id = 0;
         }
@@ -352,7 +429,12 @@ if($child_id > 0){
         }
 
         .measurements-table .col-date {
-            width: 90px;
+            width: 110px;
+        }
+
+        .measurements-table .col-type {
+            width: 150px;
+            text-align: center;
         }
 
         .measurements-table .col-age {
@@ -439,9 +521,40 @@ if($child_id > 0){
             border-radius: 8px;
         }
 
+        .assessment-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 125px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .badge-baseline {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+
+        .badge-midline {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+
+        .badge-endline {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .badge-followup {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
         @media (max-width: 1200px) {
             .measurements-table {
-                min-width: 1100px;
+                min-width: 1260px;
             }
         }
     </style>
@@ -572,6 +685,15 @@ if($child_id > 0){
                             <label class="form-label">Place of Measurement:</label>
                             <input type="text" name="place_of_measurement" class="form-control" value="<?php echo htmlspecialchars($form_place_of_measurement); ?>" required>
 
+                            <label class="form-label">Assessment Type:</label>
+                            <select name="assessment_type" class="form-control" required>
+                                <option value="">Select Assessment Type</option>
+                                <option value="baseline" <?php echo ($form_assessment_type === 'baseline') ? 'selected' : ''; ?>>Baseline</option>
+                                <option value="monthly_followup" <?php echo ($form_assessment_type === 'monthly_followup') ? 'selected' : ''; ?>>Monthly Follow-Up</option>
+                                <option value="midline" <?php echo ($form_assessment_type === 'midline') ? 'selected' : ''; ?>>Midline</option>
+                                <option value="endline" <?php echo ($form_assessment_type === 'endline') ? 'selected' : ''; ?>>Endline</option>
+                            </select>
+
                             <label class="form-label">Recorded By:</label>
                             <input type="text" class="form-control" value="<?php echo htmlspecialchars($_SESSION['first_name'] . ' ' . $_SESSION['last_name']); ?>" readonly>
                         </div>
@@ -596,6 +718,7 @@ if($child_id > 0){
                                 <thead>
                                     <tr>
                                         <th class="col-date">Date</th>
+                                        <th class="col-type center-cell">Assessment Type</th>
                                         <th class="col-age center-cell">Age<br>(Months)</th>
                                         <th class="col-height center-cell">Height<br>(cm)</th>
                                         <th class="col-weight center-cell">Weight<br>(kg)</th>
@@ -615,9 +738,25 @@ if($child_id > 0){
                                         if($recorded_by_name == ''){
                                             $recorded_by_name = 'N/A';
                                         }
+
+                                        $type = $record['assessment_type'] ?? '';
+                                        $badge_class = 'badge-followup';
+
+                                        if($type === 'baseline'){
+                                            $badge_class = 'badge-baseline';
+                                        } elseif($type === 'midline'){
+                                            $badge_class = 'badge-midline';
+                                        } elseif($type === 'endline'){
+                                            $badge_class = 'badge-endline';
+                                        }
                                     ?>
                                         <tr>
                                             <td class="date-cell"><?php echo date("M d, Y", strtotime($record['date_recorded'])); ?></td>
+                                            <td class="center-cell">
+                                                <span class="assessment-badge <?php echo $badge_class; ?>">
+                                                    <?php echo htmlspecialchars(assessment_type_label($type)); ?>
+                                                </span>
+                                            </td>
                                             <td class="center-cell"><?php echo htmlspecialchars($record['age_months'] ?? '--'); ?></td>
                                             <td class="center-cell unit-cell"><?php echo htmlspecialchars(number_format((float)$record['height'], 2)); ?><br>cm</td>
                                             <td class="center-cell unit-cell"><?php echo htmlspecialchars(number_format((float)$record['weight'], 2)); ?><br>kg</td>

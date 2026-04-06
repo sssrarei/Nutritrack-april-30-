@@ -1,0 +1,380 @@
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+body{
+    background:#f4f6f9;
+    font-family:'Inter', sans-serif;
+    color:#1f2937;
+}
+
+.main-content{
+    padding:24px;
+}
+
+.page-header{
+    margin-bottom:24px;
+}
+
+.page-header h1{
+    font-family:'Poppins', sans-serif;
+    font-size:24px;
+    font-weight:700;
+    color:#1e3a8a;
+    margin-bottom:6px;
+}
+
+.page-header p{
+    font-size:14px;
+    color:#6b7280;
+}
+
+.alert{
+    padding:14px 16px;
+    border-radius:12px;
+    margin-bottom:20px;
+    font-size:14px;
+    font-weight:500;
+}
+
+.alert.success{
+    background:#dcfce7;
+    color:#166534;
+    border:1px solid #bbf7d0;
+}
+
+.alert.error{
+    background:#fee2e2;
+    color:#991b1b;
+    border:1px solid #fecaca;
+}
+
+.summary-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+    gap:16px;
+    margin-bottom:24px;
+}
+
+.summary-card{
+    background:#ffffff;
+    border-radius:18px;
+    box-shadow:0 10px 30px rgba(15, 23, 42, 0.06);
+    padding:20px;
+}
+
+.summary-label{
+    font-size:13px;
+    font-weight:600;
+    color:#6b7280;
+    margin-bottom:8px;
+}
+
+.summary-value{
+    font-family:'Poppins', sans-serif;
+    font-size:28px;
+    font-weight:700;
+    color:#1e3a8a;
+}
+
+.toolbar-card,
+.form-card,
+.table-card{
+    background:#ffffff;
+    border-radius:18px;
+    box-shadow:0 10px 30px rgba(15, 23, 42, 0.06);
+    margin-bottom:24px;
+}
+
+.toolbar-card{
+    padding:20px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:16px;
+    flex-wrap:wrap;
+}
+
+.search-form{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    flex:1;
+}
+
+.search-input{
+    flex:1;
+    min-width:260px;
+    height:42px;
+    border:1px solid #d1d5db;
+    border-radius:10px;
+    padding:0 12px;
+    font-size:14px;
+    font-family:'Inter', sans-serif;
+    background:#ffffff;
+}
+
+.btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    text-decoration:none;
+    border:none;
+    border-radius:10px;
+    padding:11px 16px;
+    font-size:14px;
+    font-weight:600;
+    font-family:'Inter', sans-serif;
+    cursor:pointer;
+    transition:0.2s ease;
+}
+
+.btn-primary{
+    background:#2563eb;
+    color:#ffffff;
+}
+
+.btn-primary:hover{
+    background:#1d4ed8;
+}
+
+.btn-secondary{
+    background:#e5e7eb;
+    color:#374151;
+}
+
+.btn-secondary:hover{
+    background:#d1d5db;
+}
+
+.btn-light{
+    background:#f3f4f6;
+    color:#374151;
+    border:1px solid #d1d5db;
+}
+
+.btn-light:hover{
+    background:#e5e7eb;
+}
+
+.form-card{
+    padding:24px;
+    display:none;
+}
+
+.form-card.show{
+    display:block;
+}
+
+.card-header{
+    margin-bottom:20px;
+}
+
+.card-header h2{
+    font-family:'Poppins', sans-serif;
+    font-size:18px;
+    font-weight:600;
+    color:#111827;
+    margin-bottom:4px;
+}
+
+.card-header p{
+    font-size:14px;
+    color:#6b7280;
+}
+
+.form-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:18px 20px;
+}
+
+.form-group{
+    display:flex;
+    flex-direction:column;
+}
+
+.form-group.full{
+    grid-column:1 / -1;
+}
+
+.form-group label{
+    font-size:13px;
+    font-weight:600;
+    color:#374151;
+    margin-bottom:8px;
+}
+
+.form-group input{
+    height:44px;
+    border:1px solid #d1d5db;
+    border-radius:10px;
+    padding:0 12px;
+    font-size:14px;
+    font-family:'Inter', sans-serif;
+    background:#ffffff;
+    color:#111827;
+}
+
+.form-actions{
+    margin-top:20px;
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+}
+
+.table-card{
+    overflow:hidden;
+}
+
+.table-wrapper{
+    overflow-x:auto;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    min-width:900px;
+}
+
+thead th{
+    background:#eff6ff;
+    color:#1e3a8a;
+    font-size:13px;
+    font-weight:600;
+    text-align:left;
+    padding:14px 12px;
+    border-bottom:1px solid #dbeafe;
+    white-space:nowrap;
+}
+
+tbody td{
+    padding:14px 12px;
+    border-bottom:1px solid #e5e7eb;
+    font-size:14px;
+    color:#374151;
+    vertical-align:middle;
+}
+
+tbody tr:hover{
+    background:#f9fafb;
+}
+
+.cdc-name{
+    font-weight:600;
+    color:#111827;
+}
+
+.status-badge{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-width:72px;
+    padding:6px 10px;
+    border-radius:999px;
+    background:#dbeafe;
+    color:#1d4ed8;
+    font-size:12px;
+    font-weight:600;
+}
+
+.child-count{
+    text-align:center;
+    font-weight:600;
+}
+
+.empty-state{
+    text-align:center;
+    color:#6b7280;
+    padding:30px 12px;
+}
+
+body.dark-mode{
+    background:#111827;
+    color:#f9fafb;
+}
+
+body.dark-mode .page-header h1{
+    color:#93c5fd;
+}
+
+body.dark-mode .page-header p,
+body.dark-mode .summary-label,
+body.dark-mode .card-header p,
+body.dark-mode .empty-state{
+    color:#d1d5db;
+}
+
+body.dark-mode .summary-card,
+body.dark-mode .toolbar-card,
+body.dark-mode .form-card,
+body.dark-mode .table-card{
+    background:#1f2937;
+    box-shadow:none;
+}
+
+body.dark-mode .summary-value,
+body.dark-mode .card-header h2,
+body.dark-mode .cdc-name,
+body.dark-mode tbody td,
+body.dark-mode .form-group label{
+    color:#f9fafb;
+}
+
+body.dark-mode .search-input,
+body.dark-mode .form-group input{
+    background:#111827;
+    border:1px solid #374151;
+    color:#f9fafb;
+}
+
+body.dark-mode thead th{
+    background:#163b68;
+    color:#ffffff;
+    border-bottom:1px solid #3b82f6;
+}
+
+body.dark-mode tbody tr:hover{
+    background:#273449;
+}
+
+body.dark-mode tbody td{
+    border-bottom:1px solid #374151;
+}
+
+body.dark-mode .btn-secondary,
+body.dark-mode .btn-light{
+    background:#374151;
+    color:#f9fafb;
+    border-color:#4b5563;
+}
+
+body.dark-mode .btn-secondary:hover,
+body.dark-mode .btn-light:hover{
+    background:#4b5563;
+}
+
+body.dark-mode .status-badge{
+    background:#163b68;
+    color:#ffffff;
+}
+
+@media (max-width: 768px){
+    .form-grid{
+        grid-template-columns:1fr;
+    }
+
+    .toolbar-card{
+        align-items:stretch;
+    }
+
+    .search-form{
+        width:100%;
+    }
+
+    .search-input{
+        min-width:100%;
+    }
+}

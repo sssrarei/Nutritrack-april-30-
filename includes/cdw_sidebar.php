@@ -50,6 +50,10 @@
         <a href="terminal_report.php" class="sidebar-link <?php echo ($current_page == 'terminal_report.php') ? 'active' : ''; ?>">
             Terminal Report
         </a>
+
+        <a href="individual_child_report.php" class="sidebar-link <?php echo ($current_page == 'individual_child_report.php') ? 'active' : ''; ?>">
+            Individual Child Report
+        </a>
     </div>
 
     <div class="sidebar-label">Account</div>

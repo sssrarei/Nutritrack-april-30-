@@ -7,12 +7,12 @@ $success = "";
 $error = "";
 
 // Add CDC
-if(isset($_POST['add_cdc'])){
+if (isset($_POST['add_cdc'])) {
     $cdc_name = trim($_POST['cdc_name']);
     $barangay = trim($_POST['barangay']);
     $address = trim($_POST['address']);
 
-    if($cdc_name == "" || $barangay == "" || $address == ""){
+    if ($cdc_name == "" || $barangay == "" || $address == "") {
         $error = "Please fill in all required fields.";
     } else {
         $check_stmt = $conn->prepare("SELECT cdc_id FROM cdc WHERE cdc_name = ?");
@@ -20,14 +20,14 @@ if(isset($_POST['add_cdc'])){
         $check_stmt->execute();
         $check_result = $check_stmt->get_result();
 
-        if($check_result && $check_result->num_rows > 0){
+        if ($check_result && $check_result->num_rows > 0) {
             $error = "CDC name already exists.";
         } else {
-            $stmt = $conn->prepare("INSERT INTO cdc (cdc_name, barangay, address, status) VALUES (?, ?, ?, 'Active')");
+            $stmt = $conn->prepare("INSERT INTO cdc (cdc_name, barangay, address) VALUES (?, ?, ?)");
             $stmt->bind_param("sss", $cdc_name, $barangay, $address);
 
-            if($stmt->execute()){
-                $success = "CDC added successfully!";
+            if ($stmt->execute()) {
+                $success = "CDC added successfully.";
                 $_POST = [];
             } else {
                 $error = "Error adding CDC.";
@@ -39,7 +39,7 @@ if(isset($_POST['add_cdc'])){
 $search = isset($_GET['search']) ? trim($_GET['search']) : "";
 
 // CDC list with child count
-if($search != ""){
+if ($search != "") {
     $like = "%" . $search . "%";
 
     $cdc_stmt = $conn->prepare("
@@ -72,300 +72,219 @@ if($search != ""){
         ORDER BY c.cdc_id DESC
     ");
 }
+
+// Summary cards
+$total_cdc = 0;
+$total_children = 0;
+
+$summary_sql = "
+    SELECT 
+        COUNT(DISTINCT c.cdc_id) AS total_cdc,
+        COUNT(ch.child_id) AS total_children
+    FROM cdc c
+    LEFT JOIN children ch ON c.cdc_id = ch.cdc_id
+";
+$summary_result = $conn->query($summary_sql);
+if ($summary_result && $summary_result->num_rows > 0) {
+    $summary_row = $summary_result->fetch_assoc();
+    $total_cdc = (int)$summary_row['total_cdc'];
+    $total_children = (int)$summary_row['total_children'];
+}
 ?>
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CDC Management</title>
-    <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #ececf1;
-            color: #333;
-        }
-
-        .page-header {
-            background: #dcdcdc;
-            border-bottom: 1px solid #bdbdbd;
-            padding: 12px 24px;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            font-size: 18px;
-            font-weight: bold;
-        }
-
-        .back-link {
-            text-decoration: none;
-            color: #555;
-            font-size: 24px;
-            line-height: 1;
-        }
-
-        .container {
-            padding: 24px 32px 30px 32px;
-        }
-
-        .top-summary {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 20px;
-            margin-bottom: 22px;
-            flex-wrap: wrap;
-        }
-
-        .search-box {
-            width: 300px;
-            padding: 10px 14px;
-            font-size: 16px;
-            border: 2px solid #7e7e7e;
-            outline: none;
-        }
-
-        .open-form-btn {
-            background: #3498db;
-            color: #fff;
-            border: 1px solid #2f7fb3;
-            padding: 11px 18px;
-            font-size: 16px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .message-success {
-            background: #eaf7ea;
-            color: #1c6b1c;
-            border: 1px solid #b7ddb7;
-            padding: 10px 14px;
-            margin-bottom: 16px;
-            font-weight: bold;
-        }
-
-        .message-error {
-            background: #fdeaea;
-            color: #b30000;
-            border: 1px solid #efb0b0;
-            padding: 10px 14px;
-            margin-bottom: 16px;
-            font-weight: bold;
-        }
-
-        .form-card {
-            background: #fff;
-            border: 1px solid #c8c8c8;
-            padding: 24px;
-            margin-bottom: 24px;
-            display: none;
-        }
-
-        .form-card.show {
-            display: block;
-        }
-
-        .form-title {
-            margin: 0 0 18px 0;
-            font-size: 24px;
-            font-weight: bold;
-        }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 18px 24px;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .form-group.full {
-            grid-column: 1 / -1;
-        }
-
-        label {
-            font-weight: bold;
-            margin-bottom: 8px;
-            font-size: 15px;
-        }
-
-        input[type="text"] {
-            padding: 11px 12px;
-            border: 1px solid #9e9e9e;
-            font-size: 15px;
-            outline: none;
-            background: #fff;
-        }
-
-        .form-buttons {
-            margin-top: 20px;
-            display: flex;
-            gap: 12px;
-        }
-
-        .save-btn {
-            background: #3498db;
-            color: #fff;
-            border: none;
-            padding: 12px 20px;
-            font-size: 15px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .cancel-btn {
-            background: #e0e0e0;
-            color: #333;
-            border: 1px solid #bcbcbc;
-            padding: 12px 20px;
-            font-size: 15px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .table-card {
-            background: #fff;
-            border: 1px solid #c8c8c8;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        thead {
-            background: #ececec;
-        }
-
-        th, td {
-            padding: 16px 14px;
-            text-align: left;
-            border-bottom: 1px solid #e4e4e4;
-            vertical-align: top;
-        }
-
-        th {
-            font-size: 15px;
-            font-weight: bold;
-        }
-
-        td {
-            font-size: 14px;
-        }
-
-        .name-cell {
-            font-weight: bold;
-            font-size: 16px;
-        }
-
-        .child-count {
-            font-weight: bold;
-            text-align: center;
-        }
-
-        .empty-text {
-            padding: 24px;
-            text-align: center;
-            color: #666;
-            font-weight: bold;
-        }
-    </style>
+    <link rel="stylesheet" href="../assets/admin-style.css">
+    <link rel="stylesheet" href="../assets/add_cdc.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
-<body>
+<body class="<?php echo (isset($_SESSION['theme_mode']) && $_SESSION['theme_mode'] === 'dark') ? 'dark-mode' : ''; ?>">
 
-<div class="page-header">
-    <a href="dashboard.php" class="back-link">◀</a>
-    <span>CDC Management</span>
-</div>
+<?php include '../includes/admin_sidebar.php'; ?>
+<?php include '../includes/admin_topbar.php'; ?>
 
-<div class="container">
-
-    <div class="top-summary">
-        <form method="GET">
-            <input type="text" name="search" class="search-box" placeholder="Search" value="<?php echo htmlspecialchars($search); ?>">
-        </form>
-        <button type="button" class="open-form-btn" onclick="openAddCdcForm()">+ Add CDC</button>
+<div class="main-content" id="mainContent">
+    <div class="page-header">
+        <h1>CDC Management</h1>
+        <p>Manage child development centers and review the total number of children per CDC.</p>
     </div>
 
-    <?php if($success != ""){ ?>
-        <div class="message-success"><?php echo $success; ?></div>
+    <?php if ($success != "") { ?>
+        <div class="alert success"><?php echo htmlspecialchars($success); ?></div>
     <?php } ?>
 
-    <?php if($error != ""){ ?>
-        <div class="message-error"><?php echo $error; ?></div>
+    <?php if ($error != "") { ?>
+        <div class="alert error"><?php echo htmlspecialchars($error); ?></div>
     <?php } ?>
+
+    <div class="summary-grid">
+        <div class="summary-card">
+            <div class="summary-label">Total CDC</div>
+            <div class="summary-value"><?php echo $total_cdc; ?></div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-label">Total Children</div>
+            <div class="summary-value"><?php echo $total_children; ?></div>
+        </div>
+    </div>
+
+    <div class="toolbar-card">
+        <form method="GET" class="search-form">
+            <input 
+                type="text" 
+                name="search" 
+                class="search-input" 
+                placeholder="Search CDC, barangay, or address"
+                value="<?php echo htmlspecialchars($search); ?>"
+            >
+            <button type="submit" class="btn btn-secondary">Search</button>
+            <a href="add_cdc.php" class="btn btn-light">Reset</a>
+        </form>
+
+        <button type="button" class="btn btn-primary" onclick="openAddCdcForm()">Add CDC</button>
+    </div>
 
     <div class="form-card <?php echo ($error != '' || $success != '') ? 'show' : ''; ?>" id="addCdcForm">
-        <h2 class="form-title">Add CDC</h2>
+        <div class="card-header">
+            <h2>Add CDC</h2>
+            <p>Enter the CDC information below.</p>
+        </div>
 
         <form method="POST">
             <div class="form-grid">
                 <div class="form-group full">
-                    <label>CDC Name</label>
-                    <input type="text" name="cdc_name" required value="<?php echo isset($_POST['cdc_name']) ? htmlspecialchars($_POST['cdc_name']) : ''; ?>">
+                    <label for="cdc_name">CDC Name</label>
+                    <input 
+                        type="text" 
+                        id="cdc_name"
+                        name="cdc_name" 
+                        required 
+                        value="<?php echo isset($_POST['cdc_name']) ? htmlspecialchars($_POST['cdc_name']) : ''; ?>"
+                    >
                 </div>
 
                 <div class="form-group">
-                    <label>Barangay</label>
-                    <input type="text" name="barangay" required value="<?php echo isset($_POST['barangay']) ? htmlspecialchars($_POST['barangay']) : ''; ?>">
+                    <label for="barangay">Barangay</label>
+                    <input 
+                        type="text" 
+                        id="barangay"
+                        name="barangay" 
+                        required 
+                        value="<?php echo isset($_POST['barangay']) ? htmlspecialchars($_POST['barangay']) : ''; ?>"
+                    >
                 </div>
 
                 <div class="form-group">
-                    <label>Address</label>
-                    <input type="text" name="address" required value="<?php echo isset($_POST['address']) ? htmlspecialchars($_POST['address']) : ''; ?>">
+                    <label for="address">Address</label>
+                    <input 
+                        type="text" 
+                        id="address"
+                        name="address" 
+                        required 
+                        value="<?php echo isset($_POST['address']) ? htmlspecialchars($_POST['address']) : ''; ?>"
+                    >
                 </div>
             </div>
 
-            <div class="form-buttons">
-                <button type="submit" name="add_cdc" class="save-btn">Save CDC</button>
-                <button type="button" class="cancel-btn" onclick="closeAddCdcForm()">Cancel</button>
+            <div class="form-actions">
+                <button type="submit" name="add_cdc" class="btn btn-primary">Save CDC</button>
+                <button type="button" class="btn btn-light" onclick="closeAddCdcForm()">Cancel</button>
             </div>
         </form>
     </div>
 
     <div class="table-card">
-        <table>
-            <thead>
-                <tr>
-                    <th style="width:30%;">CDC Name</th>
-                    <th style="width:20%;">Barangay</th>
-                    <th style="width:35%;">Address</th>
-                    <th style="width:15%; text-align:center;">No. of Child</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if($cdc_result && $cdc_result->num_rows > 0){ ?>
-                    <?php while($row = $cdc_result->fetch_assoc()){ ?>
+        <div class="card-header">
+            <h2>CDC List</h2>
+            <p>View all registered child development centers.</p>
+        </div>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 30%;">CDC Name</th>
+                        <th style="width: 18%;">Barangay</th>
+                        <th style="width: 32%;">Address</th>
+                        <th style="width: 20%; text-align:center;">No. of Child</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if ($cdc_result && $cdc_result->num_rows > 0) { ?>
+                        <?php while ($row = $cdc_result->fetch_assoc()) { ?>
+                            <tr>
+                                <td class="cdc-name"><?php echo htmlspecialchars($row['cdc_name']); ?></td>
+                                <td><?php echo htmlspecialchars($row['barangay']); ?></td>
+                                <td><?php echo htmlspecialchars($row['address']); ?></td>
+                                <td class="child-count"><?php echo (int)$row['total_children']; ?></td>
+                            </tr>
+                        <?php } ?>
+                    <?php } else { ?>
                         <tr>
-                            <td class="name-cell"><?php echo htmlspecialchars($row['cdc_name']); ?></td>
-                            <td><?php echo htmlspecialchars($row['barangay']); ?></td>
-                            <td><?php echo htmlspecialchars($row['address']); ?></td>
-                            <td class="child-count"><?php echo (int)$row['total_children']; ?></td>
+                            <td colspan="4" class="empty-state">No CDC found.</td>
                         </tr>
                     <?php } ?>
-                <?php } else { ?>
-                    <tr>
-                        <td colspan="4" class="empty-text">No CDC found.</td>
-                    </tr>
-                <?php } ?>
-            </tbody>
-        </table>
+                </tbody>
+            </table>
+        </div>
     </div>
-
 </div>
 
 <script>
 function openAddCdcForm() {
-    document.getElementById('addCdcForm').classList.add('show');
-    document.getElementById('addCdcForm').scrollIntoView({ behavior: 'smooth' });
+    const form = document.getElementById('addCdcForm');
+    form.classList.add('show');
+    form.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function closeAddCdcForm() {
     document.getElementById('addCdcForm').classList.remove('show');
 }
+
+const menuToggle = document.getElementById('menuToggle');
+const sidebar = document.getElementById('sidebar');
+const sidebarOverlay = document.getElementById('sidebarOverlay');
+const mainContent = document.getElementById('mainContent');
+
+function handleDesktopToggle() {
+    if (!sidebar || !mainContent) return;
+    sidebar.classList.toggle('hidden');
+    mainContent.classList.toggle('full');
+}
+
+function handleMobileToggle() {
+    if (!sidebar || !sidebarOverlay) return;
+    sidebar.classList.toggle('show');
+    sidebarOverlay.classList.toggle('show');
+}
+
+if (menuToggle && sidebar) {
+    menuToggle.addEventListener('click', function () {
+        if (window.innerWidth <= 991) {
+            handleMobileToggle();
+        } else {
+            handleDesktopToggle();
+        }
+    });
+}
+
+if (sidebarOverlay) {
+    sidebarOverlay.addEventListener('click', function () {
+        sidebar.classList.remove('show');
+        sidebarOverlay.classList.remove('show');
+    });
+}
+
+window.addEventListener('resize', function () {
+    if (window.innerWidth > 991 && sidebar && sidebarOverlay) {
+        sidebar.classList.remove('show');
+        sidebarOverlay.classList.remove('show');
+    }
+});
 </script>
 
 </body>

@@ -249,6 +249,7 @@ foreach($nutritional_graph_data as $item){
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../assets/cdw-style.css">
     <link rel="stylesheet" href="../assets/cdw-dashboard.css">
+    <link rel="stylesheet" href="../assets/admin-topbar-notification.css">
 </head>
 <body class="<?php echo ($theme_mode === 'dark') ? 'dark-mode' : ''; ?>">
 <?php include '../includes/cdw_topbar.php'; ?>

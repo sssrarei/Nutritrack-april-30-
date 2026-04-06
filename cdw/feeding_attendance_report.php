@@ -11,14 +11,16 @@ if(!isset($_SESSION['active_cdc_id'])){
     die("Please select an active CDC first from the dashboard.");
 }
 
-$cdc_id = $_SESSION['active_cdc_id'];
+$cdc_id = (int) $_SESSION['active_cdc_id'];
 $cdc_name = isset($_SESSION['active_cdc_name']) ? $_SESSION['active_cdc_name'] : 'N/A';
+$user_id = (int) $_SESSION['user_id'];
 $prepared_by = trim($_SESSION['first_name'] . ' ' . $_SESSION['last_name']);
 
 $date_from = isset($_GET['date_from']) ? trim($_GET['date_from']) : '';
 $date_to = isset($_GET['date_to']) ? trim($_GET['date_to']) : '';
 
 $error = "";
+$success = "";
 $rows = [];
 $grouped_rows = [];
 
@@ -31,99 +33,233 @@ function safe_display($value){
     return (!empty($value) && trim($value) !== '') ? $value : 'N/A';
 }
 
-$date_range_display = "All available feeding records";
-if($date_from !== '' && $date_to !== ''){
-    $date_range_display = date("F d, Y", strtotime($date_from)) . " to " . date("F d, Y", strtotime($date_to));
-} elseif($date_from !== ''){
-    $date_range_display = "From " . date("F d, Y", strtotime($date_from));
-} elseif($date_to !== ''){
-    $date_range_display = "Up to " . date("F d, Y", strtotime($date_to));
+function get_date_range_display($date_from, $date_to){
+    if($date_from !== '' && $date_to !== ''){
+        return date("F d, Y", strtotime($date_from)) . " to " . date("F d, Y", strtotime($date_to));
+    } elseif($date_from !== ''){
+        return "From " . date("F d, Y", strtotime($date_from));
+    } elseif($date_to !== ''){
+        return "Up to " . date("F d, Y", strtotime($date_to));
+    }
+
+    return "All available feeding records";
 }
 
-$sql = "SELECT
-            fr.feeding_record_id,
-            fr.feeding_date,
-            CONCAT(c.first_name, ' ', c.last_name) AS child_name,
-            fr.attendance,
-            COALESCE(
-                GROUP_CONCAT(
-                    DISTINCT CONCAT(
-                        fg.food_group_name,
-                        ' — ',
-                        fi.food_item_name,
-                        CASE
-                            WHEN fri.measurement_text IS NOT NULL AND TRIM(fri.measurement_text) != ''
-                                THEN CONCAT(' (', fri.measurement_text, ')')
-                            ELSE ''
-                        END
-                    )
-                    ORDER BY fri.feeding_item_id
-                    SEPARATOR '||'
-                ),
-                '-'
-            ) AS food_details,
-            COALESCE(fr.remarks, '-') AS remarks
-        FROM feeding_records fr
-        INNER JOIN children c ON fr.child_id = c.child_id
-        LEFT JOIN feeding_record_items fri ON fr.feeding_record_id = fri.feeding_record_id
-        LEFT JOIN food_groups fg ON fri.food_group_id = fg.food_group_id
-        LEFT JOIN food_items fi ON fri.food_item_id = fi.food_item_id
-        WHERE c.cdc_id = ?";
+function fetch_feeding_attendance_rows($conn, $cdc_id, $date_from, $date_to){
+    $rows = [];
+    $grouped_rows = [];
+    $total_records = 0;
+    $present_count = 0;
+    $absent_count = 0;
+    $attendance_rate = 0;
+    $error = "";
 
-$types = "i";
-$params = [$cdc_id];
+    $sql = "SELECT
+                fr.feeding_record_id,
+                fr.feeding_date,
+                CONCAT(c.first_name, ' ', c.last_name) AS child_name,
+                fr.attendance,
+                COALESCE(
+                    GROUP_CONCAT(
+                        DISTINCT CONCAT(
+                            fg.food_group_name,
+                            ' — ',
+                            fi.food_item_name,
+                            CASE
+                                WHEN fri.measurement_text IS NOT NULL AND TRIM(fri.measurement_text) != ''
+                                    THEN CONCAT(' (', fri.measurement_text, ')')
+                                ELSE ''
+                            END
+                        )
+                        ORDER BY fri.feeding_item_id
+                        SEPARATOR '||'
+                    ),
+                    '-'
+                ) AS food_details,
+                COALESCE(fr.remarks, '-') AS remarks
+            FROM feeding_records fr
+            INNER JOIN children c ON fr.child_id = c.child_id
+            LEFT JOIN feeding_record_items fri ON fr.feeding_record_id = fri.feeding_record_id
+            LEFT JOIN food_groups fg ON fri.food_group_id = fg.food_group_id
+            LEFT JOIN food_items fi ON fri.food_item_id = fi.food_item_id
+            WHERE c.cdc_id = ?";
 
-if($date_from !== ''){
-    $sql .= " AND DATE(fr.feeding_date) >= ?";
-    $types .= "s";
-    $params[] = $date_from;
+    $types = "i";
+    $params = [$cdc_id];
+
+    if($date_from !== ''){
+        $sql .= " AND DATE(fr.feeding_date) >= ?";
+        $types .= "s";
+        $params[] = $date_from;
+    }
+
+    if($date_to !== ''){
+        $sql .= " AND DATE(fr.feeding_date) <= ?";
+        $types .= "s";
+        $params[] = $date_to;
+    }
+
+    $sql .= " GROUP BY
+                fr.feeding_record_id,
+                fr.feeding_date,
+                c.first_name,
+                c.last_name,
+                fr.attendance,
+                fr.remarks
+              ORDER BY fr.feeding_date DESC, c.last_name ASC, c.first_name ASC";
+
+    $stmt = $conn->prepare($sql);
+
+    if($stmt){
+        $stmt->bind_param($types, ...$params);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        while($row = $result->fetch_assoc()){
+            $rows[] = $row;
+
+            $feeding_date_key = date('Y-m-d', strtotime($row['feeding_date']));
+            $grouped_rows[$feeding_date_key][] = $row;
+
+            $total_records++;
+
+            if(strtolower(trim($row['attendance'])) === 'present'){
+                $present_count++;
+            } else {
+                $absent_count++;
+            }
+        }
+
+        $stmt->close();
+    } else {
+        $error = "Failed to prepare Feeding Attendance query: " . $conn->error;
+    }
+
+    if($total_records > 0){
+        $attendance_rate = round(($present_count / $total_records) * 100, 1);
+    }
+
+    return [
+        'error' => $error,
+        'rows' => $rows,
+        'grouped_rows' => $grouped_rows,
+        'total_records' => $total_records,
+        'present_count' => $present_count,
+        'absent_count' => $absent_count,
+        'attendance_rate' => $attendance_rate
+    ];
 }
 
-if($date_to !== ''){
-    $sql .= " AND DATE(fr.feeding_date) <= ?";
-    $types .= "s";
-    $params[] = $date_to;
-}
+/* =========================================================
+   SUBMIT REPORT
+========================================================= */
+if(isset($_POST['submit_report'])){
+    $date_from_post = isset($_POST['date_from']) ? trim($_POST['date_from']) : '';
+    $date_to_post = isset($_POST['date_to']) ? trim($_POST['date_to']) : '';
 
-$sql .= " GROUP BY
-            fr.feeding_record_id,
-            fr.feeding_date,
-            c.first_name,
-            c.last_name,
-            fr.attendance,
-            fr.remarks
-          ORDER BY fr.feeding_date DESC, c.last_name ASC, c.first_name ASC";
+    $report_data = fetch_feeding_attendance_rows($conn, $cdc_id, $date_from_post, $date_to_post);
 
-$stmt = $conn->prepare($sql);
+    if($report_data['error'] !== ''){
+        $error = $report_data['error'];
+    } elseif(empty($report_data['rows'])){
+        $error = "No feeding attendance records found to submit.";
+    } else {
+        mysqli_begin_transaction($conn);
 
-if($stmt){
-    $stmt->bind_param($types, ...$params);
-    $stmt->execute();
-    $result = $stmt->get_result();
+        try{
+            $payload_rows = [];
 
-    while($row = $result->fetch_assoc()){
-        $rows[] = $row;
+            foreach($report_data['rows'] as $row){
+                $payload_rows[] = [
+                    'feeding_record_id' => (int)$row['feeding_record_id'],
+                    'feeding_date' => $row['feeding_date'],
+                    'child_name' => $row['child_name'],
+                    'attendance' => $row['attendance'],
+                    'food_details' => $row['food_details'],
+                    'remarks' => $row['remarks']
+                ];
+            }
 
-        $feeding_date_key = date('Y-m-d', strtotime($row['feeding_date']));
-        $grouped_rows[$feeding_date_key][] = $row;
+            $report_payload = json_encode([
+                'report_type' => 'feeding_attendance',
+                'cdc_id' => $cdc_id,
+                'cdc_name' => $cdc_name,
+                'prepared_by' => $prepared_by,
+                'date_from' => $date_from_post !== '' ? $date_from_post : null,
+                'date_to' => $date_to_post !== '' ? $date_to_post : null,
+                'date_range_display' => get_date_range_display($date_from_post, $date_to_post),
+                'total_records' => $report_data['total_records'],
+                'present_count' => $report_data['present_count'],
+                'absent_count' => $report_data['absent_count'],
+                'attendance_rate' => $report_data['attendance_rate'],
+                'submitted_rows' => $payload_rows
+            ], JSON_UNESCAPED_UNICODE);
 
-        $total_records++;
+            if($report_payload === false){
+                throw new Exception("Failed to encode report payload.");
+            }
 
-        if(strtolower(trim($row['attendance'])) === 'present'){
-            $present_count++;
-        } else {
-            $absent_count++;
+            $insert_stmt = $conn->prepare("
+                INSERT INTO submitted_reports
+                (report_type, cdc_id, submitted_by, date_from, date_to, submitted_at, status, report_payload)
+                VALUES (?, ?, ?, ?, ?, NOW(), ?, ?)
+            ");
+
+            if(!$insert_stmt){
+                throw new Exception("Failed to prepare submitted report insert query.");
+            }
+
+            $report_type = 'feeding_attendance';
+            $status = 'submitted';
+            $date_from_insert = ($date_from_post !== '') ? $date_from_post : null;
+            $date_to_insert = ($date_to_post !== '') ? $date_to_post : null;
+
+            $insert_stmt->bind_param(
+                "siissss",
+                $report_type,
+                $cdc_id,
+                $user_id,
+                $date_from_insert,
+                $date_to_insert,
+                $status,
+                $report_payload
+            );
+
+            if(!$insert_stmt->execute()){
+                throw new Exception("Failed to save submitted report.");
+            }
+
+            $insert_stmt->close();
+
+            mysqli_commit($conn);
+            $success = "Feeding Attendance Report submitted successfully and is now visible to CSWD.";
+        } catch(Exception $e){
+            mysqli_rollback($conn);
+            $error = $e->getMessage();
         }
     }
 
-    $stmt->close();
-} else {
-    $error = "Failed to prepare Feeding Attendance query: " . $conn->error;
+    $date_from = $date_from_post;
+    $date_to = $date_to_post;
 }
 
-if($total_records > 0){
-    $attendance_rate = round(($present_count / $total_records) * 100, 1);
+/* =========================================================
+   FETCH DATA
+========================================================= */
+$data = fetch_feeding_attendance_rows($conn, $cdc_id, $date_from, $date_to);
+
+if($data['error'] !== ''){
+    $error = $data['error'];
+} else {
+    $rows = $data['rows'];
+    $grouped_rows = $data['grouped_rows'];
+    $total_records = $data['total_records'];
+    $present_count = $data['present_count'];
+    $absent_count = $data['absent_count'];
+    $attendance_rate = $data['attendance_rate'];
 }
+
+$date_range_display = get_date_range_display($date_from, $date_to);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -265,6 +401,17 @@ if($total_records > 0){
             background:#fdeaea;
             color:#c62828;
             border:1px solid #f5c2c7;
+            border-radius:10px;
+            padding:14px 16px;
+            margin-bottom:16px;
+            font-size:13px;
+            font-weight:600;
+        }
+
+        .success-message{
+            background:#eaf7ec;
+            color:#2e7d32;
+            border:1px solid #cfe8d3;
             border-radius:10px;
             padding:14px 16px;
             margin-bottom:16px;
@@ -499,6 +646,10 @@ if($total_records > 0){
             <div class="error-message"><?php echo htmlspecialchars($error); ?></div>
         <?php } ?>
 
+        <?php if(!empty($success)){ ?>
+            <div class="success-message"><?php echo htmlspecialchars($success); ?></div>
+        <?php } ?>
+
         <form method="GET">
             <div class="filter-grid">
                 <div class="form-group">
@@ -604,9 +755,14 @@ if($total_records > 0){
                 <?php } ?>
             </div>
 
-            <div class="footer-row">
-                <button type="button" class="btn btn-submit">Submit Report</button>
-            </div>
+            <form method="POST">
+                <input type="hidden" name="date_from" value="<?php echo htmlspecialchars($date_from); ?>">
+                <input type="hidden" name="date_to" value="<?php echo htmlspecialchars($date_to); ?>">
+
+                <div class="footer-row">
+                    <button type="submit" name="submit_report" class="btn btn-submit">Submit Report</button>
+                </div>
+            </form>
         <?php } else { ?>
             <p class="no-data">No feeding attendance records found.</p>
         <?php } ?>
@@ -621,7 +777,9 @@ function toggleSidebar() {
 
     if (window.innerWidth <= 991) {
         sidebar.classList.toggle('open');
-        overlay.classList.toggle('show');
+        if (overlay) {
+            overlay.classList.toggle('show');
+        }
     } else {
         sidebar.classList.toggle('closed');
         mainContent.classList.toggle('full');
@@ -630,7 +788,10 @@ function toggleSidebar() {
 
 function closeSidebar() {
     document.getElementById('sidebar').classList.remove('open');
-    document.getElementById('sidebarOverlay').classList.remove('show');
+    var overlay = document.getElementById('sidebarOverlay');
+    if (overlay) {
+        overlay.classList.remove('show');
+    }
 }
 </script>
 

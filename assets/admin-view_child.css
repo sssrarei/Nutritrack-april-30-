@@ -1,0 +1,289 @@
+.view-shell{
+    padding:10px 6px 0;
+}
+
+.view-breadcrumb{
+    background:#ffffff;
+    border:1px solid var(--border-color);
+    border-radius:14px;
+    padding:14px 18px;
+    margin-bottom:18px;
+    font-size:14px;
+    font-family:'Poppins', sans-serif;
+    font-weight:600;
+    color:#2f3f55;
+}
+
+.view-breadcrumb a{
+    color:var(--accent);
+    text-decoration:none;
+}
+
+.view-breadcrumb strong{
+    color:#2f3f55;
+    font-weight:700;
+}
+
+.view-title{
+    font-family:'Poppins', sans-serif;
+    font-size:24px;
+    font-weight:700;
+    color:#2f3f55;
+    margin-bottom:12px;
+}
+
+.view-tabs{
+    display:flex;
+    flex-wrap:wrap;
+    gap:0;
+    margin-bottom:18px;
+    border:1px solid #cfd6df;
+    border-radius:14px;
+    overflow:hidden;
+    background:#fff;
+}
+
+.view-tab{
+    padding:12px 18px;
+    border-right:1px solid #cfd6df;
+    color:#374151;
+    font-weight:600;
+    background:#fff;
+}
+
+.view-tab:last-child{
+    border-right:none;
+}
+
+.view-tab.active{
+    background:#f3f7fb;
+    color:var(--accent);
+}
+
+.view-card{
+    background:#ffffff;
+    border:1px solid var(--border-color);
+    border-radius:16px;
+    overflow:hidden;
+    box-shadow:0 2px 6px rgba(15, 23, 42, 0.04);
+}
+
+.view-card-header{
+    padding:14px 18px;
+    border-bottom:1px solid #e5e7eb;
+    background:#f3f7fb;
+    font-family:'Poppins', sans-serif;
+    font-size:16px;
+    font-weight:700;
+    color:#374151;
+}
+
+.view-card-body{
+    padding:18px;
+}
+
+.profile-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:18px;
+}
+
+.mini-card{
+    border:1px solid #d8dee6;
+    border-radius:14px;
+    overflow:hidden;
+    background:#fff;
+}
+
+.mini-card-header{
+    padding:12px 16px;
+    background:#f3f7fb;
+    border-bottom:1px solid #e5e7eb;
+    font-weight:700;
+    color:#374151;
+}
+
+.mini-card-body{
+    padding:16px;
+}
+
+.detail-list{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:10px;
+}
+
+.detail-item{
+    font-size:14px;
+    color:#374151;
+    line-height:1.55;
+}
+
+.detail-item strong{
+    color:#111827;
+}
+
+.section-meta{
+    margin-bottom:14px;
+    font-size:13px;
+    color:#6b7280;
+}
+
+.section-meta strong{
+    color:#374151;
+}
+
+.status-normal{
+    color:#2E7D32;
+    font-weight:700;
+}
+
+.status-alert{
+    color:#C0392B;
+    font-weight:700;
+}
+
+.view-table-wrap{
+    overflow-x:auto;
+}
+
+.view-table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+.view-table th,
+.view-table td{
+    border:1px solid #d8dee6;
+    padding:12px 10px;
+    font-size:13px;
+    color:#374151;
+    vertical-align:middle;
+    text-align:center;
+}
+
+.view-table th{
+    background:#f5f7fb;
+    font-weight:700;
+    color:#243b53;
+}
+
+.view-table td:first-child,
+.view-table th:first-child{
+    text-align:left;
+}
+
+.empty-section{
+    padding:18px;
+    border:1px dashed #cfd6df;
+    border-radius:12px;
+    color:#6b7280;
+    font-size:13px;
+    background:#fafafa;
+}
+
+.growth-layout{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:18px;
+}
+
+.growth-charts{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:18px;
+}
+
+.svg-chart-box{
+    border:1px solid #d8dee6;
+    border-radius:14px;
+    padding:12px;
+    background:#fff;
+}
+
+.svg-chart-title{
+    font-weight:700;
+    color:#374151;
+    margin-bottom:10px;
+    font-size:14px;
+}
+
+.svg-chart{
+    width:100%;
+    height:auto;
+}
+
+.graph-info{
+    border:1px solid #d8dee6;
+    border-radius:14px;
+    padding:16px;
+    background:#fff;
+    font-size:14px;
+    color:#374151;
+    line-height:1.7;
+}
+
+.graph-empty{
+    padding:16px;
+    color:#6b7280;
+    font-size:13px;
+}
+
+.back-wrap{
+    margin-top:18px;
+    text-align:right;
+}
+
+.back-link{
+    display:inline-block;
+    padding:10px 16px;
+    border:1px solid #cfd6df;
+    border-radius:10px;
+    background:#fff;
+    color:#374151;
+    font-size:13px;
+    font-weight:600;
+}
+
+.back-link:hover{
+    background:#f9fafb;
+}
+
+@media (max-width: 1100px){
+    .profile-grid,
+    .growth-charts{
+        grid-template-columns:1fr;
+    }
+}
+
+@media (max-width: 768px){
+    .view-tabs{
+        display:grid;
+        grid-template-columns:1fr 1fr;
+    }
+
+    .view-tab{
+        border-right:1px solid #cfd6df;
+        border-bottom:1px solid #cfd6df;
+    }
+}
+
+.food-details-cell{
+    text-align:left !important;
+    line-height:1.6;
+}
+
+.food-detail-line{
+    margin-bottom:4px;
+}
+
+.food-detail-line:last-child{
+    margin-bottom:0;
+}
+.chart-point-group circle:hover{
+    opacity:0.85;
+}
+
+#graphPointInfo{
+    min-height:110px;
+}
