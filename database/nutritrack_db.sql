@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 02, 2026 at 01:48 PM
+-- Generation Time: Apr 06, 2026 at 03:44 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -36,6 +36,9 @@ CREATE TABLE `anthropometric_records` (
   `date_recorded` date NOT NULL,
   `age_months` int(11) DEFAULT NULL,
   `place_of_measurement` varchar(255) DEFAULT NULL,
+  `assessment_type` enum('baseline','monthly_followup','midline','endline') NOT NULL DEFAULT 'monthly_followup',
+  `is_submitted` tinyint(1) NOT NULL DEFAULT 0,
+  `submitted_at` datetime DEFAULT NULL,
   `wfa_status` varchar(100) DEFAULT NULL,
   `hfa_status` varchar(100) DEFAULT NULL,
   `wflh_status` varchar(100) DEFAULT NULL,
@@ -46,40 +49,13 @@ CREATE TABLE `anthropometric_records` (
 -- Dumping data for table `anthropometric_records`
 --
 
-INSERT INTO `anthropometric_records` (`record_id`, `child_id`, `height`, `weight`, `muac`, `date_recorded`, `age_months`, `place_of_measurement`, `wfa_status`, `hfa_status`, `wflh_status`, `recorded_by`) VALUES
-(53, 4, 85.00, 10.20, 12.30, '2026-01-12', 27, 'Child Development Center', 'Normal', 'Normal', 'Normal', 6),
-(54, 8, 103.00, 16.50, 14.50, '2026-01-12', 45, 'Child Development Center', 'Normal', 'Normal', 'Normal', 6),
-(55, 6, 95.00, 12.00, 11.80, '2026-01-12', 57, 'Child Development Center', 'Underweight', 'Stunted', 'Normal', 6),
-(56, 5, 104.00, 20.50, 16.50, '2026-01-12', 47, 'Child Development Center', 'Normal', 'Normal', 'Overweight', 6),
-(57, 2, 110.00, 22.80, 17.20, '2026-01-12', 55, 'Child Development Center', 'Normal', 'Normal', 'Overweight', 6),
-(58, 7, 88.00, 11.00, 12.80, '2026-01-12', 31, 'Child Development Center', 'Normal', 'Normal', 'Normal', 6),
-(59, 3, 115.00, 18.00, 14.00, '2026-01-12', 70, 'Child Development Center', 'Normal', 'Normal', 'Normal', 6),
-(60, 14, 102.00, 14.50, 15.50, '2026-01-12', 47, 'CDC', 'Normal', 'Normal', 'Normal', 13),
-(61, 15, 95.00, 13.20, 15.00, '2026-01-12', 33, 'CDC', 'Normal', 'Normal', 'Normal', 13),
-(62, 16, 104.00, 13.80, 14.00, '2026-01-12', 52, 'CDC', 'Normal', 'Normal', 'Wasted', 13),
-(63, 17, 87.00, 11.50, 13.00, '2026-01-12', 22, 'CDC', 'Normal', 'Normal', 'Normal', 13),
-(64, 18, 110.00, 18.50, 16.50, '2026-01-12', 50, 'CDC', 'Normal', 'Normal', 'Normal', 13),
-(65, 9, 100.00, 15.00, 15.80, '2026-01-12', 42, 'CDC', 'Normal', 'Normal', 'Normal', 13),
-(66, 10, 108.00, 16.00, 15.20, '2026-01-12', 58, 'CDC', 'Normal', 'Normal', 'Normal', 13),
-(67, 11, 92.00, 11.00, 13.80, '2026-01-12', 29, 'CDC', 'Normal', 'Normal', 'Normal', 13),
-(68, 12, 112.00, 20.00, 17.00, '2026-01-12', 63, 'CDC', 'Normal', 'Normal', 'Normal', 13),
-(69, 13, 85.00, 10.80, 14.20, '2026-01-12', 22, 'CDC', 'Normal', 'Normal', 'Normal', 13),
-(70, 18, 120.00, 19.50, 15.00, '2026-02-12', 51, 'CDC', 'Normal', 'Tall', 'Normal', 13),
-(71, 17, 85.00, 12.50, 14.00, '2026-02-12', 23, 'CDC', 'Normal', 'Normal', 'Normal', 13),
-(72, 15, 98.00, 14.50, 16.00, '2026-02-12', 34, 'CDC', 'Normal', 'Normal', 'Normal', 13),
-(73, 16, 104.00, 12.80, 13.00, '2026-02-12', 53, 'CDC', 'Underweight', 'Normal', 'Severely Wasted', 13),
-(74, 14, 103.00, 15.50, 17.50, '2026-02-12', 48, 'CDC', 'Normal', 'Normal', 'Normal', 13),
-(75, 18, 110.00, 20.60, 17.00, '2026-03-12', 52, 'CDC', 'Normal', 'Normal', 'Normal', 13),
-(76, 17, 89.00, 14.00, 15.00, '2026-04-13', 25, 'CDC', 'Normal', 'Normal', 'Normal', 13),
-(77, 15, 100.00, 16.00, 18.00, '2026-03-12', 35, 'CDC', 'Normal', 'Normal', 'Normal', 13),
-(78, 16, 100.00, 10.20, 16.00, '2026-03-13', 54, 'CDC', 'Severely Underweight', 'Normal', 'Severely Wasted', 13),
-(79, 14, 88.00, 14.00, 17.50, '2026-03-12', 49, 'CDC', 'Normal', 'Severely Stunted', 'Normal', 13),
-(80, 18, 100.00, 22.00, 15.00, '2026-04-02', 52, 'CDC', 'Normal', 'Normal', 'Obese', 13),
-(81, 17, 90.00, 15.00, 15.00, '2026-04-02', 25, 'CDC', 'Normal', 'Normal', 'Normal', 13),
-(82, 15, 100.00, 16.00, 18.00, '2026-04-02', 35, 'CDC', 'Normal', 'Normal', 'Normal', 13),
-(83, 15, 100.00, 69.00, 14.00, '2026-04-02', 35, 'CDC', 'Overweight', 'Normal', 'Obese', 13),
-(84, 16, 100.00, 13.00, 15.00, '2026-04-02', 54, 'CDC', 'Underweight', 'Normal', 'Wasted', 13),
-(85, 14, 89.00, 15.00, 13.00, '2026-04-02', 50, 'CDC', 'Normal', 'Severely Stunted', 'Overweight', 13);
+INSERT INTO `anthropometric_records` (`record_id`, `child_id`, `height`, `weight`, `muac`, `date_recorded`, `age_months`, `place_of_measurement`, `assessment_type`, `is_submitted`, `submitted_at`, `wfa_status`, `hfa_status`, `wflh_status`, `recorded_by`) VALUES
+(1, 18, 95.00, 14.50, 15.50, '2025-06-09', 42, 'CDC', 'baseline', 1, '2026-04-04 21:14:09', 'Normal', 'Normal', 'Normal', 13),
+(2, 17, 92.00, 11.00, 13.00, '2025-06-09', 15, 'CDC', 'baseline', 1, '2026-04-04 21:14:09', 'Normal', 'Tall', 'Normal', 13),
+(3, 15, 90.00, 9.00, 11.50, '2025-06-09', 25, 'CDC', 'baseline', 1, '2026-04-04 21:14:09', 'Underweight', 'Normal', 'Severely Wasted', 13),
+(4, 16, 85.00, 12.50, 14.50, '2025-06-09', 45, 'CDC', 'baseline', 1, '2026-04-04 21:14:09', 'Normal', 'Severely Stunted', 'Normal', 13),
+(5, 14, 95.00, 10.50, 12.00, '2025-06-09', 40, 'CDC', 'baseline', 1, '2026-04-04 21:14:09', 'Underweight', 'Normal', 'Severely Wasted', 13),
+(6, 17, 95.00, 13.00, 13.00, '2025-07-09', 16, 'CDC', 'monthly_followup', 0, NULL, 'Overweight', 'Tall', 'Normal', 13);
 
 -- --------------------------------------------------------
 
@@ -1313,6 +1289,41 @@ INSERT INTO `guardians` (`guardian_id`, `child_id`, `user_id`, `first_name`, `mi
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `intervention_guidance`
+--
+
+CREATE TABLE `intervention_guidance` (
+  `guidance_id` int(11) NOT NULL,
+  `child_id` int(11) NOT NULL,
+  `record_id` int(11) NOT NULL,
+  `submitted_report_id` int(11) DEFAULT NULL,
+  `original_status` varchar(50) NOT NULL,
+  `intervention_category` varchar(50) NOT NULL,
+  `guidance_text` text NOT NULL,
+  `optional_note` text DEFAULT NULL,
+  `is_at_risk` tinyint(1) DEFAULT 0,
+  `needs_counseling` tinyint(1) DEFAULT 0,
+  `needs_referral` tinyint(1) DEFAULT 0,
+  `reviewed_by` int(11) DEFAULT NULL,
+  `is_reviewed` tinyint(1) DEFAULT 0,
+  `sent_to_guardian` tinyint(1) DEFAULT 0,
+  `sent_at` datetime DEFAULT NULL,
+  `status_note` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `intervention_guidance`
+--
+
+INSERT INTO `intervention_guidance` (`guidance_id`, `child_id`, `record_id`, `submitted_report_id`, `original_status`, `intervention_category`, `guidance_text`, `optional_note`, `is_at_risk`, `needs_counseling`, `needs_referral`, `reviewed_by`, `is_reviewed`, `sent_to_guardian`, `sent_at`, `status_note`, `created_at`, `updated_at`) VALUES
+(1, 14, 5, NULL, 'Severely Wasted', 'Severely Wasted', 'Ensure the child eats every meal on time (never skip meals)\nGive small but frequent meals throughout the day\nEnsure adequate water intake daily\nMonitor closely for weakness or signs of illness\nSeek immediate care if the child becomes very weak or condition worsens', '', 0, 0, 0, NULL, 0, 0, NULL, 'Generated from CSWD intervention module based on latest anthropometric record', '2026-04-05 17:31:07', '2026-04-05 18:47:09'),
+(2, 15, 3, NULL, 'Severely Wasted', 'Severely Wasted', 'Ensure the child eats every meal on time (never skip meals)\nGive small but frequent meals throughout the day\nEnsure adequate water intake daily\nMonitor closely for weakness or signs of illness\nSeek immediate care if the child becomes very weak or condition worsens', '', 0, 0, 0, NULL, 0, 0, NULL, 'Generated from CSWD intervention module based on latest anthropometric record', '2026-04-05 18:31:46', '2026-04-05 18:47:09');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `milk_feeding_records`
 --
 
@@ -1365,6 +1376,36 @@ INSERT INTO `milk_feeding_records` (`milk_record_id`, `child_id`, `feeding_date`
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `notifications`
+--
+
+CREATE TABLE `notifications` (
+  `notification_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `reminder_id` int(11) DEFAULT NULL,
+  `title` varchar(255) NOT NULL,
+  `message` text DEFAULT NULL,
+  `deadline` date DEFAULT NULL,
+  `is_read` tinyint(1) NOT NULL DEFAULT 0,
+  `read_at` datetime DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `admin_seen` tinyint(1) NOT NULL DEFAULT 0,
+  `admin_seen_at` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `notifications`
+--
+
+INSERT INTO `notifications` (`notification_id`, `user_id`, `reminder_id`, `title`, `message`, `deadline`, `is_read`, `read_at`, `created_at`, `admin_seen`, `admin_seen_at`) VALUES
+(1, 13, 1, 'NEEDED FOR BASELINE', 'better to pass it on time...', '2026-04-30', 1, '2026-04-06 07:23:48', '2026-04-05 23:23:17', 1, '2026-04-06 08:59:45'),
+(2, 13, 1, 'NEEDED FOR BASELINE', 'better to pass it on time...', '2026-04-30', 1, '2026-04-06 07:23:44', '2026-04-05 23:23:17', 1, '2026-04-06 08:59:42'),
+(3, 13, 2, 'NUTRITIONAL SUMMARY', 'i need it until 9am only..', '2026-04-29', 1, '2026-04-06 09:19:40', '2026-04-06 00:40:25', 1, '2026-04-06 09:22:58'),
+(4, 13, 2, 'NUTRITIONAL SUMMARY', 'i need it until 9am only..', '2026-04-29', 1, '2026-04-06 08:40:44', '2026-04-06 00:40:25', 1, '2026-04-06 08:59:47');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `parent_child_links`
 --
 
@@ -1389,6 +1430,53 @@ INSERT INTO `parent_child_links` (`link_id`, `parent_id`, `child_id`, `linked_at
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `reminders`
+--
+
+CREATE TABLE `reminders` (
+  `reminder_id` int(11) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `message` text DEFAULT NULL,
+  `deadline` date NOT NULL,
+  `report_type` varchar(100) NOT NULL,
+  `created_by` int(11) NOT NULL,
+  `status` varchar(20) NOT NULL DEFAULT 'active',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `reminders`
+--
+
+INSERT INTO `reminders` (`reminder_id`, `title`, `message`, `deadline`, `report_type`, `created_by`, `status`, `created_at`) VALUES
+(1, 'NEEDED FOR BASELINE', 'better to pass it on time...', '2026-04-30', 'WMR Submission', 1, 'active', '2026-04-05 23:23:17'),
+(2, 'NUTRITIONAL SUMMARY', 'i need it until 9am only..', '2026-04-29', 'Nutritional Status Summary', 1, 'active', '2026-04-06 00:40:25');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `reminder_targets`
+--
+
+CREATE TABLE `reminder_targets` (
+  `reminder_target_id` int(11) NOT NULL,
+  `reminder_id` int(11) NOT NULL,
+  `cdc_id` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `reminder_targets`
+--
+
+INSERT INTO `reminder_targets` (`reminder_target_id`, `reminder_id`, `cdc_id`) VALUES
+(1, 1, 8),
+(2, 1, 7),
+(3, 2, 8),
+(4, 2, 7);
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `roles`
 --
 
@@ -1405,6 +1493,37 @@ INSERT INTO `roles` (`role_id`, `role_name`) VALUES
 (1, 'CSWD Admin'),
 (2, 'CDW'),
 (3, 'Guardian');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `submitted_reports`
+--
+
+CREATE TABLE `submitted_reports` (
+  `submitted_report_id` int(11) NOT NULL,
+  `report_type` varchar(100) NOT NULL,
+  `cdc_id` int(11) NOT NULL,
+  `submitted_by` int(11) NOT NULL,
+  `date_from` date DEFAULT NULL,
+  `date_to` date DEFAULT NULL,
+  `submitted_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `status` varchar(50) NOT NULL DEFAULT 'submitted',
+  `report_payload` longtext NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `submitted_reports`
+--
+
+INSERT INTO `submitted_reports` (`submitted_report_id`, `report_type`, `cdc_id`, `submitted_by`, `date_from`, `date_to`, `submitted_at`, `status`, `report_payload`) VALUES
+(1, 'masterlist', 7, 13, NULL, NULL, '2026-04-04 21:13:52', 'submitted', '{\"report_type\":\"masterlist\",\"cdc_id\":7,\"cdc_name\":\"Strike Day Care Center – Child Development Center\",\"prepared_by\":\"Anna Natividad\",\"submitted_rows\":[{\"child_id\":17,\"full_name\":\"Danica Joy Alonzo\",\"sex\":\"Female\",\"birthdate\":\"2024-02-27\",\"age_in_months\":25,\"guardian_name\":\"Carlo Alonzo\",\"address\":\"Molino 2, Bacoor\"},{\"child_id\":14,\"full_name\":\"Zion Matthew Delgado\",\"sex\":\"Male\",\"birthdate\":\"2022-01-18\",\"age_in_months\":50,\"guardian_name\":\"Liza Delgado\",\"address\":\"Molino 2, Bacoor\"},{\"child_id\":15,\"full_name\":\"Kiara Elise Navarro\",\"sex\":\"Female\",\"birthdate\":\"2023-04-10\",\"age_in_months\":35,\"guardian_name\":\"Joel Navarro\",\"address\":\"Molino 2, Bacoor\"},{\"child_id\":16,\"full_name\":\"Rafael Andre Pineda\",\"sex\":\"Male\",\"birthdate\":\"2021-09-03\",\"age_in_months\":55,\"guardian_name\":\"Grace Pineda\",\"address\":\"Molino 2, Bacoor\"},{\"child_id\":18,\"full_name\":\"Bryan Kyle Serrano\",\"sex\":\"Male\",\"birthdate\":\"2021-11-12\",\"age_in_months\":52,\"guardian_name\":\"Mae Serrano\",\"address\":\"Molino 2, Bacoor\"}],\"total_records\":5}'),
+(2, 'wmr', 7, 13, NULL, NULL, '2026-04-04 21:14:09', 'submitted', '{\"report_type\":\"wmr\",\"assessment_scope\":\"baseline_only\",\"cdc_id\":7,\"cdc_name\":\"Strike Day Care Center – Child Development Center\",\"prepared_by\":\"Anna Natividad\",\"date_from\":null,\"date_to\":null,\"submitted_rows\":[{\"record_id\":2,\"child_id\":17,\"child_name\":\"Danica Alonzo\",\"cdc_name\":\"Strike Day Care Center – Child Development Center\",\"date_recorded\":\"2025-06-09\",\"assessment_type\":\"baseline\",\"age_in_months\":15,\"height\":\"92.00\",\"weight\":\"11.00\",\"muac\":\"13.00\",\"wfa_status\":\"Normal\",\"hfa_status\":\"Tall\",\"wflh_status\":\"Normal\",\"recorded_by_name\":\"Anna Natividad\"},{\"record_id\":5,\"child_id\":14,\"child_name\":\"Zion Delgado\",\"cdc_name\":\"Strike Day Care Center – Child Development Center\",\"date_recorded\":\"2025-06-09\",\"assessment_type\":\"baseline\",\"age_in_months\":40,\"height\":\"95.00\",\"weight\":\"10.50\",\"muac\":\"12.00\",\"wfa_status\":\"Underweight\",\"hfa_status\":\"Normal\",\"wflh_status\":\"Severely Wasted\",\"recorded_by_name\":\"Anna Natividad\"},{\"record_id\":3,\"child_id\":15,\"child_name\":\"Kiara Navarro\",\"cdc_name\":\"Strike Day Care Center – Child Development Center\",\"date_recorded\":\"2025-06-09\",\"assessment_type\":\"baseline\",\"age_in_months\":25,\"height\":\"90.00\",\"weight\":\"9.00\",\"muac\":\"11.50\",\"wfa_status\":\"Underweight\",\"hfa_status\":\"Normal\",\"wflh_status\":\"Severely Wasted\",\"recorded_by_name\":\"Anna Natividad\"},{\"record_id\":4,\"child_id\":16,\"child_name\":\"Rafael Pineda\",\"cdc_name\":\"Strike Day Care Center – Child Development Center\",\"date_recorded\":\"2025-06-09\",\"assessment_type\":\"baseline\",\"age_in_months\":45,\"height\":\"85.00\",\"weight\":\"12.50\",\"muac\":\"14.50\",\"wfa_status\":\"Normal\",\"hfa_status\":\"Severely Stunted\",\"wflh_status\":\"Normal\",\"recorded_by_name\":\"Anna Natividad\"},{\"record_id\":1,\"child_id\":18,\"child_name\":\"Bryan Serrano\",\"cdc_name\":\"Strike Day Care Center – Child Development Center\",\"date_recorded\":\"2025-06-09\",\"assessment_type\":\"baseline\",\"age_in_months\":42,\"height\":\"95.00\",\"weight\":\"14.50\",\"muac\":\"15.50\",\"wfa_status\":\"Normal\",\"hfa_status\":\"Normal\",\"wflh_status\":\"Normal\",\"recorded_by_name\":\"Anna Natividad\"}],\"total_records\":5}'),
+(3, 'nutritional_status_summary', 7, 13, '2026-04-01', '2026-04-30', '2026-04-04 21:14:45', 'submitted', '{\"report_type\":\"nutritional_status_summary\",\"cdc_id\":7,\"cdc_name\":\"Strike Day Care Center – Child Development Center\",\"prepared_by\":\"Anna Natividad\",\"reporting_month\":\"2026-04\",\"reporting_month_display\":\"April 2026\",\"summary_text\":\"Most children are in Normal status (20%). 40% are underweight or severely underweight.\",\"highest_label\":\"Underweight\",\"highest_value\":2,\"highest_pct\":40,\"submitted_rows\":[{\"total\":5,\"normal\":1,\"normal_pct\":20,\"underweight\":2,\"underweight_pct\":40,\"severely_underweight\":0,\"severely_underweight_pct\":0,\"overweight\":0,\"overweight_pct\":0,\"obese\":0,\"obese_pct\":0,\"stunted\":0,\"stunted_pct\":0,\"severely_stunted\":1,\"severely_stunted_pct\":20,\"moderately_wasted\":0,\"moderately_wasted_pct\":0,\"severely_wasted\":2,\"severely_wasted_pct\":40}]}'),
+(4, 'individual_child', 7, 13, NULL, NULL, '2026-04-04 21:14:54', 'saved_to_child_profile', '{\"report_type\":\"individual_child\",\"child_id\":17,\"child_name\":\"Danica Joy Alonzo\",\"sex\":\"Female\",\"cdc_id\":7,\"cdc_name\":\"Strike Day Care Center – Child Development Center\",\"submitted_by\":13,\"submitted_at\":\"2026-04-04 15:14:54\"}'),
+(5, 'individual_child', 7, 13, NULL, NULL, '2026-04-05 22:43:57', 'saved_to_child_profile', '{\"report_type\":\"individual_child\",\"child_id\":14,\"child_name\":\"Zion Matthew Delgado\",\"sex\":\"Male\",\"cdc_id\":7,\"cdc_name\":\"Strike Day Care Center – Child Development Center\",\"submitted_by\":13,\"submitted_at\":\"2026-04-05 16:43:57\"}'),
+(6, 'nutritional_status_summary', 7, 13, '2026-04-01', '2026-04-30', '2026-04-05 22:45:34', 'submitted', '{\"report_type\":\"nutritional_status_summary\",\"cdc_id\":7,\"cdc_name\":\"Strike Day Care Center – Child Development Center\",\"prepared_by\":\"Anna Natividad\",\"reporting_month\":\"2026-04\",\"reporting_month_display\":\"April 2026\",\"summary_text\":\"Most children are in Normal status (20%). 40% are underweight or severely underweight.\",\"highest_label\":\"Underweight\",\"highest_value\":2,\"highest_pct\":40,\"submitted_rows\":[{\"total\":5,\"normal\":1,\"normal_pct\":20,\"underweight\":2,\"underweight_pct\":40,\"severely_underweight\":0,\"severely_underweight_pct\":0,\"overweight\":0,\"overweight_pct\":0,\"obese\":0,\"obese_pct\":0,\"stunted\":0,\"stunted_pct\":0,\"severely_stunted\":1,\"severely_stunted_pct\":20,\"moderately_wasted\":0,\"moderately_wasted_pct\":0,\"severely_wasted\":2,\"severely_wasted_pct\":40}]}'),
+(7, 'individual_child', 7, 13, NULL, NULL, '2026-04-05 22:50:27', 'saved_to_child_profile', '{\"report_type\":\"individual_child\",\"child_id\":15,\"child_name\":\"Kiara Elise Navarro\",\"sex\":\"Female\",\"cdc_id\":7,\"cdc_name\":\"Strike Day Care Center – Child Development Center\",\"submitted_by\":13,\"submitted_at\":\"2026-04-05 16:50:27\"}');
 
 -- --------------------------------------------------------
 
@@ -1430,17 +1549,17 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`user_id`, `role_id`, `first_name`, `last_name`, `email`, `password`, `contact_number`, `address`, `created_at`, `last_active`) VALUES
-(1, 1, 'Admin', 'User', 'admin@gmail.com', '1234', NULL, NULL, '2026-03-25 22:04:10', '2026-03-31 23:10:30'),
+(1, 1, 'Admin', 'User', 'admin@gmail.com', '1234', NULL, NULL, '2026-03-25 22:04:10', '2026-04-06 09:22:59'),
 (3, 3, 'guar', 'dian', 'guardian@gmail.com', '4321', NULL, NULL, '2026-03-25 22:04:10', NULL),
 (5, 2, 'lena', 'bautista', 'lena@gmail.com', 'lena', NULL, NULL, '2026-03-25 22:04:10', NULL),
-(6, 2, 'Marlene', 'Tolentino', 'marlene@gmail.com', 'marlene', NULL, NULL, '2026-03-25 22:04:10', '2026-03-31 17:34:38'),
+(6, 2, 'Marlene', 'Tolentino', 'marlene@gmail.com', 'marlene', NULL, NULL, '2026-03-25 22:04:10', '2026-04-03 06:39:21'),
 (7, 3, 'Maria Teresa', 'Cruz', 'maria@gmail.com', 'maria', NULL, NULL, '2026-03-25 22:04:10', NULL),
 (8, 3, 'Mia', 'Cruz', 'miacruz@gmail.com', 'miacruz', NULL, NULL, '2026-03-25 22:04:10', NULL),
 (9, 2, 'demi', 'perez', 'demiperez@gmail.com', 'demi', NULL, NULL, '2026-03-25 22:26:08', NULL),
 (10, 3, 'harvey', 'lino', 'harveylino@gmail.com', '4321', NULL, NULL, '2026-03-26 03:38:45', NULL),
 (11, 3, 'Maria', 'Reyex', 'maria.reyes@gmail.com', 'mariareyes', NULL, NULL, '2026-03-27 10:54:34', '2026-03-27 18:54:51'),
 (12, 3, 'Carlos', 'Mendoza', 'carlosmendoza@gmail.com', 'carlosmendoza', NULL, NULL, '2026-03-27 14:40:43', '2026-03-27 22:40:53'),
-(13, 2, 'Anna', 'Natividad', 'annanatividad@gmail.com', 'annanatividad', NULL, NULL, '2026-03-31 15:10:22', '2026-04-02 18:43:46');
+(13, 2, 'Anna', 'Natividad', 'annanatividad@gmail.com', 'annanatividad', '09050349845', '', '2026-03-31 15:10:22', '2026-04-06 09:22:34');
 
 --
 -- Indexes for dumped tables
@@ -1550,12 +1669,29 @@ ALTER TABLE `guardians`
   ADD UNIQUE KEY `user_id` (`user_id`);
 
 --
+-- Indexes for table `intervention_guidance`
+--
+ALTER TABLE `intervention_guidance`
+  ADD PRIMARY KEY (`guidance_id`),
+  ADD KEY `idx_child_id` (`child_id`),
+  ADD KEY `idx_record_id` (`record_id`),
+  ADD KEY `idx_submitted_report_id` (`submitted_report_id`),
+  ADD KEY `idx_reviewed_by` (`reviewed_by`),
+  ADD KEY `idx_intervention_category` (`intervention_category`);
+
+--
 -- Indexes for table `milk_feeding_records`
 --
 ALTER TABLE `milk_feeding_records`
   ADD PRIMARY KEY (`milk_record_id`),
   ADD KEY `fk_milk_child` (`child_id`),
   ADD KEY `fk_milk_recorded_by` (`recorded_by`);
+
+--
+-- Indexes for table `notifications`
+--
+ALTER TABLE `notifications`
+  ADD PRIMARY KEY (`notification_id`);
 
 --
 -- Indexes for table `parent_child_links`
@@ -1566,10 +1702,30 @@ ALTER TABLE `parent_child_links`
   ADD KEY `parent_id` (`parent_id`);
 
 --
+-- Indexes for table `reminders`
+--
+ALTER TABLE `reminders`
+  ADD PRIMARY KEY (`reminder_id`);
+
+--
+-- Indexes for table `reminder_targets`
+--
+ALTER TABLE `reminder_targets`
+  ADD PRIMARY KEY (`reminder_target_id`);
+
+--
 -- Indexes for table `roles`
 --
 ALTER TABLE `roles`
   ADD PRIMARY KEY (`role_id`);
+
+--
+-- Indexes for table `submitted_reports`
+--
+ALTER TABLE `submitted_reports`
+  ADD PRIMARY KEY (`submitted_report_id`),
+  ADD KEY `cdc_id` (`cdc_id`),
+  ADD KEY `submitted_by` (`submitted_by`);
 
 --
 -- Indexes for table `users`
@@ -1587,7 +1743,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `anthropometric_records`
 --
 ALTER TABLE `anthropometric_records`
-  MODIFY `record_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=86;
+  MODIFY `record_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `cdc`
@@ -1668,10 +1824,22 @@ ALTER TABLE `guardians`
   MODIFY `guardian_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
+-- AUTO_INCREMENT for table `intervention_guidance`
+--
+ALTER TABLE `intervention_guidance`
+  MODIFY `guidance_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
 -- AUTO_INCREMENT for table `milk_feeding_records`
 --
 ALTER TABLE `milk_feeding_records`
   MODIFY `milk_record_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=53;
+
+--
+-- AUTO_INCREMENT for table `notifications`
+--
+ALTER TABLE `notifications`
+  MODIFY `notification_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `parent_child_links`
@@ -1680,10 +1848,28 @@ ALTER TABLE `parent_child_links`
   MODIFY `link_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
+-- AUTO_INCREMENT for table `reminders`
+--
+ALTER TABLE `reminders`
+  MODIFY `reminder_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT for table `reminder_targets`
+--
+ALTER TABLE `reminder_targets`
+  MODIFY `reminder_target_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
 -- AUTO_INCREMENT for table `roles`
 --
 ALTER TABLE `roles`
   MODIFY `role_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT for table `submitted_reports`
+--
+ALTER TABLE `submitted_reports`
+  MODIFY `submitted_report_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `users`
@@ -1763,6 +1949,13 @@ ALTER TABLE `milk_feeding_records`
 ALTER TABLE `parent_child_links`
   ADD CONSTRAINT `parent_child_links_ibfk_1` FOREIGN KEY (`parent_id`) REFERENCES `users` (`user_id`),
   ADD CONSTRAINT `parent_child_links_ibfk_2` FOREIGN KEY (`child_id`) REFERENCES `children` (`child_id`);
+
+--
+-- Constraints for table `submitted_reports`
+--
+ALTER TABLE `submitted_reports`
+  ADD CONSTRAINT `submitted_reports_ibfk_1` FOREIGN KEY (`cdc_id`) REFERENCES `cdc` (`cdc_id`),
+  ADD CONSTRAINT `submitted_reports_ibfk_2` FOREIGN KEY (`submitted_by`) REFERENCES `users` (`user_id`);
 
 --
 -- Constraints for table `users`
