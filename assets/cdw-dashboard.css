@@ -160,83 +160,29 @@ a{
 
 .chart-box{
     background:#fff;
-    border:1.5px solid #d0d0d0;
-    border-radius:12px;
-    min-height:325px;
-    padding:18px 16px 14px;
+    border:1px solid #d7dde5;
+    border-radius:18px;
+    min-height:420px;
+    padding:20px 18px 16px;
+    box-shadow:0 10px 24px rgba(15, 23, 42, 0.05);
 }
 
 .chart-title{
     font-family:'Poppins', sans-serif;
-    font-size:16px;
+    font-size:15px;
+    line-height:1.45;
     text-align:center;
-    color:#3d3d3d;
-    margin-bottom:18px;
-    font-weight:600;
+    color:#243447;
+    margin-bottom:16px;
+    font-weight:700;
 }
 
-.fake-chart{
-    height:255px;
-    display:flex;
-    align-items:flex-end;
-    gap:12px;
-    padding:0 10px 0;
-    border-bottom:1px solid #dcdcdc;
+.chart-canvas-wrap{
+    position:relative;
+    height:320px;
+    width:100%;
 }
 
-.fake-bar{
-    flex:1;
-    border-radius:4px 4px 0 0;
-}
-
-.bar-green-1{ background:#8acb99; }
-.bar-green-2{ background:#5ea96a; }
-.bar-green-3{ background:#5ca767; }
-.bar-green-4{ background:#8acb99; }
-.bar-green-5{ background:#9ac29f; }
-.bar-green-6{ background:#5ea96a; }
-.bar-green-7{ background:#5ca767; }
-.bar-green-8{ background:#a1c7a5; }
-
-.bar-mix-1{ background:#47b248; }
-.bar-mix-2{ background:#ddbbbb; }
-.bar-mix-3{ background:#ff3d3d; }
-.bar-mix-4{ background:#e5b8b8; }
-.bar-mix-5{ background:#ff3d3d; }
-.bar-mix-6{ background:#dcc0c0; }
-.bar-mix-7{ background:#ff3d3d; }
-.bar-mix-8{ background:#eb5656; }
-.bar-mix-9{ background:#ff3d3d; }
-
-.chart-labels{
-    display:grid;
-    gap:12px;
-    margin-top:8px;
-    font-size:10px;
-    color:#555;
-    text-align:center;
-}
-
-.chart-labels.nutri{
-    grid-template-columns:repeat(9, 1fr);
-}
-
-.food-chart-labels{
-    align-items:start;
-}
-
-.food-label{
-    min-height:48px;
-    display:flex;
-    align-items:flex-start;
-    justify-content:center;
-    text-align:center;
-    line-height:1.25;
-    word-break:break-word;
-    padding:0 4px;
-}
-
-/* ================= DASHBOARD DARK MODE ================= */
 body.dark-mode{
     background:#0f172a;
     color:#e5e7eb;
@@ -280,19 +226,12 @@ body.dark-mode .card-count{
 
 body.dark-mode .chart-box{
     background:#111827;
-    border:1.5px solid #334155;
+    border:1px solid #334155;
+    box-shadow:none;
 }
 
 body.dark-mode .chart-title{
     color:#f8fafc;
-}
-
-body.dark-mode .fake-chart{
-    border-bottom:1px solid #334155;
-}
-
-body.dark-mode .chart-labels{
-    color:#cbd5e1;
 }
 
 @media (max-width: 1200px){
@@ -345,6 +284,10 @@ body.dark-mode .chart-labels{
     .cards-grid{
         grid-template-columns:repeat(2, 1fr);
     }
+
+    .chart-canvas-wrap{
+        height:300px;
+    }
 }
 
 @media (max-width: 600px){
@@ -357,7 +300,16 @@ body.dark-mode .chart-labels{
     }
 
     .chart-box{
-        min-height:280px;
+        min-height:360px;
+        padding:18px 14px 14px;
+    }
+
+    .chart-title{
+        font-size:14px;
+    }
+
+    .chart-canvas-wrap{
+        height:280px;
     }
 
     .card-title{
@@ -367,4 +319,6 @@ body.dark-mode .chart-labels{
     .card-count{
         font-size:30px;
     }
+
+    
 }

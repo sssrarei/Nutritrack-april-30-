@@ -109,7 +109,7 @@ if(isset($_POST['register'])){
             gap:8px;
             margin-bottom:12px;
             text-decoration:none;
-            color:#3498db;
+            color:#16a34a   ;
             font-size:13px;
             font-weight:600;
         }
@@ -238,12 +238,12 @@ if(isset($_POST['register'])){
         }
 
         .btn-primary{
-            background:#3498db;
+            background:#16a34a;
             color:#fff;
         }
 
         .btn-primary:hover{
-            background:#3498db;
+            background:#4ADE80;
         }
 
         @media (max-width: 900px){

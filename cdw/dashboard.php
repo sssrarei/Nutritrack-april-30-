@@ -15,6 +15,42 @@ $theme_mode = $_SESSION['theme_mode'];
 $user_id = $_SESSION['user_id'];
 $error = "";
 
+function getShortFoodGroupLabel($label) {
+    $map = array(
+        'Rice, Corn, Root Crops' => 'Rice',
+        'Bread and Noodles' => 'Bread',
+        'Vegetables' => 'Veggies',
+        'Fruits' => 'Fruits',
+        'Meat & Poultry' => 'Meat',
+        'Fish and Shellfish' => 'Fish',
+        'Egg' => 'Egg',
+        'Milk and Milk Products' => 'Milk',
+        'Dried Beans and Nuts' => 'Beans',
+        'Fats and Oils' => 'Fats',
+        'Sugar/Sweets' => 'Sugar',
+    );
+
+    $label = trim((string)$label);
+    return isset($map[$label]) ? $map[$label] : $label;
+}
+
+function getShortNutritionLabel($label) {
+    $map = array(
+        'Normal' => 'Normal',
+        'Underweight' => 'UW',
+        'Severely Underweight' => 'S.UW',
+        'Overweight' => 'OW',
+        'Obese' => 'Obese',
+        'Stunted' => 'ST',
+        'Severely Stunted' => 'S. ST',
+        'Moderately Wasted' => 'M. W',
+        'Severely Wasted' => 'S. W'
+    );
+
+    $label = trim((string)$label);
+    return isset($map[$label]) ? $map[$label] : $label;
+}
+
 // Kunin lahat ng assigned CDC ng logged-in CDW
 $cdc_result = $conn->query("
     SELECT c.cdc_id, c.cdc_name, c.barangay
@@ -59,14 +95,7 @@ if(isset($_POST['switch_cdc'])){
 |--------------------------------------------------------------------------
 | DASHBOARD COUNTS
 |--------------------------------------------------------------------------
-| - Only children under the currently selected / switched CDC
-| - Total Child Enrolled in = total children under active CDC
-| - Nutritional counts = latest anthropometric record only per child
-| - Option A:
-|   Normal only if wfa_status, hfa_status, and wflh_status are all Normal
-|--------------------------------------------------------------------------
 */
-
 $total_children_count = 0;
 $normal_count = 0;
 $underweight_count = 0;
@@ -82,20 +111,12 @@ $severely_wasted_count = 0;
 |--------------------------------------------------------------------------
 | FOOD GROUP GRAPH DATA
 |--------------------------------------------------------------------------
-| - Active/switched CDC only
-| - Count of food group entries from feeding_record_items
-| - NO milk_feeding_records involved
-| - Show all food groups even if zero
-|--------------------------------------------------------------------------
 */
 $food_group_data = [];
-$food_group_max = 1;
 
 /*
 |--------------------------------------------------------------------------
 | NUTRITIONAL STATUS GRAPH DATA
-|--------------------------------------------------------------------------
-| - Based on current dashboard counts
 |--------------------------------------------------------------------------
 */
 $nutritional_graph_data = [];
@@ -182,8 +203,6 @@ if(isset($_SESSION['active_cdc_id']) && !empty($_SESSION['active_cdc_id'])){
     }
 
     // Food group consumption graph data
-    // NOTE: This counts ONLY food group entries from feeding modules.
-    // It does NOT use milk_feeding_records.
     $food_sql = "
         SELECT
             fg.food_group_id,
@@ -210,9 +229,6 @@ if(isset($_SESSION['active_cdc_id']) && !empty($_SESSION['active_cdc_id'])){
     if($food_result){
         while($row = mysqli_fetch_assoc($food_result)){
             $food_group_data[] = $row;
-            if((int)$row['total_count'] > $food_group_max){
-                $food_group_max = (int)$row['total_count'];
-            }
         }
     }
 }
@@ -223,23 +239,38 @@ if(isset($_SESSION['active_cdc_id']) && !empty($_SESSION['active_cdc_id'])){
 |--------------------------------------------------------------------------
 */
 $nutritional_graph_data = [
-    ['label' => 'Normal', 'count' => (int)$normal_count, 'class' => 'bar-mix-1'],
-    ['label' => 'Underweight', 'count' => (int)$underweight_count, 'class' => 'bar-mix-2'],
-    ['label' => 'Severely Underweight', 'count' => (int)$severely_underweight_count, 'class' => 'bar-mix-3'],
-    ['label' => 'Overweight', 'count' => (int)$overweight_count, 'class' => 'bar-mix-4'],
-    ['label' => 'Obese', 'count' => (int)$obese_count, 'class' => 'bar-mix-5'],
-    ['label' => 'Stunted', 'count' => (int)$stunted_count, 'class' => 'bar-mix-6'],
-    ['label' => 'Severely Stunted', 'count' => (int)$severely_stunted_count, 'class' => 'bar-mix-7'],
-    ['label' => 'Moderately Wasted', 'count' => (int)$moderately_wasted_count, 'class' => 'bar-mix-8'],
-    ['label' => 'Severely Wasted', 'count' => (int)$severely_wasted_count, 'class' => 'bar-mix-9']
+    ['label' => 'Normal', 'count' => (int)$normal_count],
+    ['label' => 'Underweight', 'count' => (int)$underweight_count],
+    ['label' => 'Severely Underweight', 'count' => (int)$severely_underweight_count],
+    ['label' => 'Overweight', 'count' => (int)$overweight_count],
+    ['label' => 'Obese', 'count' => (int)$obese_count],
+    ['label' => 'Stunted', 'count' => (int)$stunted_count],
+    ['label' => 'Severely Stunted', 'count' => (int)$severely_stunted_count],
+    ['label' => 'Moderately Wasted', 'count' => (int)$moderately_wasted_count],
+    ['label' => 'Severely Wasted', 'count' => (int)$severely_wasted_count]
 ];
 
-$nutritional_graph_max = 1;
-foreach($nutritional_graph_data as $item){
-    if($item['count'] > $nutritional_graph_max){
-        $nutritional_graph_max = $item['count'];
-    }
+$food_chart_labels = array();
+$food_chart_full_labels = array();
+$food_chart_counts = array();
+
+foreach ($food_group_data as $fg) {
+    $food_chart_labels[] = getShortFoodGroupLabel($fg['food_group_name']);
+    $food_chart_full_labels[] = $fg['food_group_name'];
+    $food_chart_counts[] = (int)$fg['total_count'];
 }
+
+$nutri_chart_labels = array();
+$nutri_chart_full_labels = array();
+$nutri_chart_counts = array();
+
+foreach ($nutritional_graph_data as $item) {
+    $nutri_chart_labels[] = getShortNutritionLabel($item['label']);
+    $nutri_chart_full_labels[] = $item['label'];
+    $nutri_chart_counts[] = (int)$item['count'];
+}
+
+$is_dark_mode = ($theme_mode === 'dark');
 ?>
 <!DOCTYPE html>
 <html>
@@ -390,24 +421,8 @@ foreach($nutritional_graph_data as $item){
                 Summary of Food Group Consumption
                 <?php echo isset($_SESSION['active_cdc_name']) ? htmlspecialchars(strtoupper($_SESSION['active_cdc_name'])) : ''; ?>
             </div>
-
-            <div class="fake-chart">
-                <?php foreach($food_group_data as $index => $fg){ 
-                    $height = 0;
-                    if($food_group_max > 0){
-                        $height = ((int)$fg['total_count'] / $food_group_max) * 100;
-                    }
-
-                    $bar_class = 'bar-green-' . (($index % 8) + 1);
-                ?>
-                    <div class="fake-bar <?php echo $bar_class; ?>" style="height: <?php echo $height; ?>%;"></div>
-                <?php } ?>
-            </div>
-
-            <div class="chart-labels food-chart-labels" style="grid-template-columns:repeat(<?php echo count($food_group_data) > 0 ? count($food_group_data) : 1; ?>, 1fr);">
-                <?php foreach($food_group_data as $fg){ ?>
-                    <div class="food-label"><?php echo htmlspecialchars($fg['food_group_name']); ?></div>
-                <?php } ?>
+            <div class="chart-canvas-wrap">
+                <canvas id="foodChart"></canvas>
             </div>
         </div>
 
@@ -416,28 +431,209 @@ foreach($nutritional_graph_data as $item){
                 Graphical Representation of the Nutritional Status of Children
                 <?php echo isset($_SESSION['active_cdc_name']) ? htmlspecialchars(strtoupper($_SESSION['active_cdc_name'])) : ''; ?>
             </div>
-
-            <div class="fake-chart">
-                <?php foreach($nutritional_graph_data as $item){ 
-                    $height = 0;
-                    if($nutritional_graph_max > 0){
-                        $height = ($item['count'] / $nutritional_graph_max) * 100;
-                    }
-                ?>
-                    <div class="fake-bar <?php echo $item['class']; ?>" style="height: <?php echo $height; ?>%;"></div>
-                <?php } ?>
-            </div>
-
-            <div class="chart-labels nutri">
-                <?php foreach($nutritional_graph_data as $item){ ?>
-                    <div class="food-label"><?php echo htmlspecialchars($item['label']); ?></div>
-                <?php } ?>
+            <div class="chart-canvas-wrap">
+                <canvas id="nutriChart"></canvas>
             </div>
         </div>
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+const foodChartLabels = <?php echo json_encode($food_chart_labels); ?>;
+const foodChartFullLabels = <?php echo json_encode($food_chart_full_labels); ?>;
+const foodChartData = <?php echo json_encode($food_chart_counts); ?>;
+
+const nutriChartLabels = <?php echo json_encode($nutri_chart_labels); ?>;
+const nutriChartFullLabels = <?php echo json_encode($nutri_chart_full_labels); ?>;
+const nutriChartData = <?php echo json_encode($nutri_chart_counts); ?>;
+
+const axisColor = <?php echo json_encode($is_dark_mode ? '#cbd5e1' : '#475569'); ?>;
+const gridColor = <?php echo json_encode('rgba(148, 163, 184, 0.18)'); ?>;
+
+new Chart(document.getElementById('foodChart'), {
+    type: 'bar',
+    data: {
+        labels: foodChartLabels,
+        datasets: [{
+            data: foodChartData,
+            backgroundColor: [
+                '#8acb99', '#5ea96a', '#5ca767', '#8acb99', '#9ac29f',
+                '#5ea96a', '#5ca767', '#a1c7a5', '#84c18c', '#5ca767', '#a8d5ad'
+            ],
+            borderRadius: 8,
+            borderSkipped: false,
+            maxBarThickness: 44
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: {
+            duration: 700
+        },
+        plugins: {
+            legend: {
+                display: false
+            },
+            tooltip: {
+                backgroundColor: '#1e293b',
+                titleColor: '#ffffff',
+                bodyColor: '#ffffff',
+                displayColors: false,
+                callbacks: {
+                    title: function(context) {
+                        return foodChartFullLabels[context[0].dataIndex] || '';
+                    }
+                }
+            }
+        },
+        layout: {
+            padding: {
+                top: 8,
+                right: 8,
+                bottom: 0,
+                left: 8
+            }
+        },
+        scales: {
+            x: {
+                ticks: {
+                    color: axisColor,
+                    font: {
+                        family: 'Inter',
+                        size: 10
+                    },
+                    autoSkip: false,
+                    maxRotation: 0,
+                    minRotation: 0
+                },
+                grid: {
+                    display: false,
+                    drawBorder: false
+                },
+                border: {
+                    display: false
+                }
+            },
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    precision: 0,
+                    stepSize: 1,
+                    color: axisColor,
+                    font: {
+                        family: 'Inter',
+                        size: 10
+                    }
+                },
+                grid: {
+                    color: gridColor,
+                    drawBorder: false
+                },
+                border: {
+                    display: false
+                }
+            }
+        }
+    }
+});
+
+new Chart(document.getElementById('nutriChart'), {
+    type: 'bar',
+    data: {
+        labels: nutriChartLabels,
+        datasets: [{
+            data: nutriChartData,
+            backgroundColor: [
+                '#47b248',
+                '#ddbbbb',
+                '#ff3d3d',
+                '#e5b8b8',
+                '#ff3d3d',
+                '#dcc0c0',
+                '#ff3d3d',
+                '#eb5656',
+                '#ff3d3d'
+            ],
+            borderRadius: 8,
+            borderSkipped: false,
+            maxBarThickness: 44
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: {
+            duration: 700
+        },
+        plugins: {
+            legend: {
+                display: false
+            },
+            tooltip: {
+                backgroundColor: '#1e293b',
+                titleColor: '#ffffff',
+                bodyColor: '#ffffff',
+                displayColors: false,
+                callbacks: {
+                    title: function(context) {
+                        return nutriChartFullLabels[context[0].dataIndex] || '';
+                    }
+                }
+            }
+        },
+        layout: {
+            padding: {
+                top: 8,
+                right: 8,
+                bottom: 0,
+                left: 8
+            }
+        },
+        scales: {
+            x: {
+                ticks: {
+                    color: axisColor,
+                    font: {
+                        family: 'Inter',
+                        size: 10
+                    },
+                    autoSkip: false,
+                    maxRotation: 0,
+                    minRotation: 0
+                },
+                grid: {
+                    display: false,
+                    drawBorder: false
+                },
+                border: {
+                    display: false
+                }
+            },
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    precision: 0,
+                    stepSize: 1,
+                    color: axisColor,
+                    font: {
+                        family: 'Inter',
+                        size: 10
+                    }
+                },
+                grid: {
+                    color: gridColor,
+                    drawBorder: false
+                },
+                border: {
+                    display: false
+                }
+            }
+        }
+    }
+});
+
 function toggleSidebar() {
     var sidebar = document.getElementById('sidebar');
     var overlay = document.getElementById('sidebarOverlay');

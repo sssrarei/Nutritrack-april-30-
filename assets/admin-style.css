@@ -831,6 +831,7 @@ a{
     }
 }
 
+/* TOPBAR NOTIFICATIONS */
 .topbar-notification {
     position: relative;
     display: flex;

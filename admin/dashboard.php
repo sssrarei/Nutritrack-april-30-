@@ -49,6 +49,34 @@ function getLatestSubmittedWMRPerCDC($conn) {
     return $reports;
 }
 
+function getFinalRiskStatus($wfa_status, $hfa_status, $wflh_status) {
+    $statuses = array(
+        trim((string)$wfa_status),
+        trim((string)$hfa_status),
+        trim((string)$wflh_status)
+    );
+
+    $priority_order = array(
+        'Severely Wasted',
+        'Severely Underweight',
+        'Severely Stunted',
+        'Moderately Wasted',
+        'Underweight',
+        'Stunted',
+        'Obese',
+        'Overweight',
+        'Normal'
+    );
+
+    foreach ($priority_order as $priority_status) {
+        if (in_array($priority_status, $statuses, true)) {
+            return $priority_status;
+        }
+    }
+
+    return 'Normal';
+}
+
 $total_cdcs = 0;
 $total_cdws = 0;
 $total_children = 0;
@@ -57,14 +85,15 @@ $submitted_reports = 0;
 $pending_reviews = 0;
 
 $status_summary = array(
-    'Normal' => 0,
-    'Underweight' => 0,
-    'Severely Underweight' => 0,
-    'Stunted' => 0,
-    'Moderately Wasted' => 0,
-    'Severely Wasted' => 0,
-    'Overweight' => 0,
-    'Obese' => 0
+    'Normal' => array('count' => 0, 'children' => array()),
+    'Underweight' => array('count' => 0, 'children' => array()),
+    'Severely Underweight' => array('count' => 0, 'children' => array()),
+    'Overweight' => array('count' => 0, 'children' => array()),
+    'Obese' => array('count' => 0, 'children' => array()),
+    'Stunted' => array('count' => 0, 'children' => array()),
+    'Severely Stunted' => array('count' => 0, 'children' => array()),
+    'Moderately Wasted' => array('count' => 0, 'children' => array()),
+    'Severely Wasted' => array('count' => 0, 'children' => array())
 );
 
 $recent_reports = array();
@@ -98,27 +127,42 @@ if ($submitted_reports_result && mysqli_num_rows($submitted_reports_result) > 0)
     $submitted_reports = (int)$submitted_reports_row['total'];
 }
 
-$pending_reviews_query = "SELECT COUNT(*) AS total FROM submitted_reports WHERE LOWER(status) = 'pending'";
+/*
+|--------------------------------------------------------------------------
+| At-Risk Children
+| Source: latest submitted WMR per CDC only
+| Do NOT depend on intervention_guidance sending status
+|--------------------------------------------------------------------------
+*/
+$at_risk_child_keys = array();
+
+/*
+|--------------------------------------------------------------------------
+| Pending Reviews
+| At-risk children not yet sent to guardian
+|--------------------------------------------------------------------------
+*/
+$pending_reviews_query = "
+    SELECT COUNT(DISTINCT child_id) AS total
+    FROM intervention_guidance
+    WHERE is_at_risk = 1
+      AND (sent_to_guardian = 0 OR sent_to_guardian IS NULL)
+";
 $pending_reviews_result = mysqli_query($conn, $pending_reviews_query);
 if ($pending_reviews_result && mysqli_num_rows($pending_reviews_result) > 0) {
     $pending_reviews_row = mysqli_fetch_assoc($pending_reviews_result);
     $pending_reviews = (int)$pending_reviews_row['total'];
 }
 
-$at_risk_query = "SELECT COUNT(DISTINCT child_id) AS total FROM intervention_guidance WHERE is_at_risk = 1";
-$at_risk_result = mysqli_query($conn, $at_risk_query);
-if ($at_risk_result && mysqli_num_rows($at_risk_result) > 0) {
-    $at_risk_row = mysqli_fetch_assoc($at_risk_result);
-    $at_risk_children = (int)$at_risk_row['total'];
-}
-
 /*
 |--------------------------------------------------------------------------
 | Nutritional Status Summary
-| Latest submitted WMR per CDC only
+| Source: latest submitted WMR per CDC only
+| One final pinaka-risk status per child
 |--------------------------------------------------------------------------
 */
 $latest_wmr_reports = getLatestSubmittedWMRPerCDC($conn);
+$processed_children = array();
 
 foreach ($latest_wmr_reports as $wmr_report) {
     $payload = decodeReportPayload($wmr_report['report_payload']);
@@ -127,46 +171,53 @@ foreach ($latest_wmr_reports as $wmr_report) {
         : array();
 
     foreach ($submitted_rows as $row) {
+        $child_id = isset($row['child_id']) ? (int)$row['child_id'] : 0;
+        $child_name = isset($row['child_name']) ? trim($row['child_name']) : '';
+        $cdc_name = isset($row['cdc_name']) ? trim($row['cdc_name']) : '';
+
         $wfa_status = isset($row['wfa_status']) ? trim($row['wfa_status']) : '';
         $hfa_status = isset($row['hfa_status']) ? trim($row['hfa_status']) : '';
         $wflh_status = isset($row['wflh_status']) ? trim($row['wflh_status']) : '';
 
-        if ($wfa_status === 'Severely Underweight') {
-            $status_summary['Severely Underweight']++;
-        } elseif ($wfa_status === 'Underweight') {
-            $status_summary['Underweight']++;
+        if ($child_name === '') {
+            $child_name = 'Unknown Child';
         }
 
-        if ($hfa_status === 'Stunted' || $hfa_status === 'Severely Stunted') {
-            $status_summary['Stunted']++;
+        if ($cdc_name === '') {
+            $cdc_name = 'Unknown CDC';
         }
 
-        if ($wflh_status === 'Moderately Wasted') {
-            $status_summary['Moderately Wasted']++;
-        }
+        $child_key = $child_id > 0 ? 'child_' . $child_id : md5($child_name . '|' . $cdc_name . '|' . $wmr_report['submitted_report_id']);
 
-        if ($wflh_status === 'Severely Wasted') {
-            $status_summary['Severely Wasted']++;
+        if (isset($processed_children[$child_key])) {
+            continue;
         }
+        $processed_children[$child_key] = true;
 
-        if ($wflh_status === 'Overweight') {
-            $status_summary['Overweight']++;
-        }
+        $final_status = getFinalRiskStatus($wfa_status, $hfa_status, $wflh_status);
 
-        if ($wflh_status === 'Obese') {
-            $status_summary['Obese']++;
-        }
+            if (
+                $wfa_status === 'Underweight' ||
+                $wfa_status === 'Severely Underweight' ||
+                $wflh_status === 'Overweight' ||
+                $wflh_status === 'Obese'
+            ) {
+                $at_risk_child_keys[$child_key] = true;
+            }
 
-        $has_nutritional_concern =
-            ($wfa_status === 'Underweight' || $wfa_status === 'Severely Underweight') ||
-            ($hfa_status === 'Stunted' || $hfa_status === 'Severely Stunted') ||
-            ($wflh_status === 'Moderately Wasted' || $wflh_status === 'Severely Wasted' || $wflh_status === 'Overweight' || $wflh_status === 'Obese');
+            if (!isset($status_summary[$final_status])) {
+                continue;
+            }
 
-        if (!$has_nutritional_concern) {
-            $status_summary['Normal']++;
-        }
+        $status_summary[$final_status]['count']++;
+        $status_summary[$final_status]['children'][] = array(
+            'child_name' => $child_name,
+            'cdc_name' => $cdc_name
+        );
     }
 }
+
+$at_risk_children = count($at_risk_child_keys);
 
 /*
 |--------------------------------------------------------------------------
@@ -209,12 +260,14 @@ if ($recent_reports_result) {
 /*
 |--------------------------------------------------------------------------
 | Intervention Alerts
+| Official intervention_guidance data only
 |--------------------------------------------------------------------------
 */
 $intervention_alerts_query = "
     SELECT 
         ig.guidance_id,
         ig.child_id,
+        ig.original_status,
         ig.intervention_category,
         ig.is_at_risk,
         ig.needs_counseling,
@@ -222,6 +275,7 @@ $intervention_alerts_query = "
         ig.status_note,
         ig.updated_at,
         ig.created_at,
+        ig.sent_to_guardian,
         c.cdc_name,
         ch.first_name,
         ch.last_name
@@ -229,8 +283,7 @@ $intervention_alerts_query = "
     LEFT JOIN children ch ON ig.child_id = ch.child_id
     LEFT JOIN cdc c ON ch.cdc_id = c.cdc_id
     WHERE ig.is_at_risk = 1
-       OR ig.needs_counseling = 1
-       OR ig.needs_referral = 1
+      AND (ig.sent_to_guardian = 0 OR ig.sent_to_guardian IS NULL)
     ORDER BY ig.updated_at DESC, ig.guidance_id DESC
     LIMIT 5
 ";
@@ -243,11 +296,20 @@ if ($intervention_alerts_result) {
             $child_name = 'Unknown Child';
         }
 
-        $description = !empty($row['status_note']) ? $row['status_note'] : 'Intervention alert available.';
+        $nutritional_status = !empty($row['original_status'])
+            ? $row['original_status']
+            : (!empty($row['intervention_category']) ? $row['intervention_category'] : 'At Risk');
+
+        $description = !empty($row['status_note'])
+            ? $row['status_note']
+            : 'Official intervention guidance record available for review.';
+
         $meta_time = !empty($row['updated_at']) ? $row['updated_at'] : $row['created_at'];
 
         $intervention_alerts[] = array(
-            'title' => $child_name . ' • ' . $row['intervention_category'],
+            'child_id' => (int)$row['child_id'],
+            'child_name' => $child_name,
+            'nutritional_status' => $nutritional_status,
             'description' => $description,
             'meta' => (!empty($row['cdc_name']) ? $row['cdc_name'] : 'Unknown CDC') . ' • ' .
                       (!empty($meta_time) ? date("F d, Y g:i A", strtotime($meta_time)) : '—')
@@ -264,6 +326,51 @@ if ($intervention_alerts_result) {
     <link rel="stylesheet" href="../assets/admin-style.css">
     <link rel="stylesheet" href="../assets/admin-topbar-notification.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        .status-children-list {
+            margin-top: 10px;
+            padding-left: 18px;
+        }
+
+        .status-children-list li {
+            margin-bottom: 6px;
+            font-size: 13px;
+            color: #334155;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .status-children-list li span {
+            color: #64748b;
+            font-size: 12px;
+        }
+
+        .status-empty-note {
+            margin-top: 8px;
+            font-size: 12px;
+            color: #94a3b8;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .alert-actions {
+            margin-top: 10px;
+        }
+
+        .alert-action-link {
+            display: inline-block;
+            padding: 8px 12px;
+            border-radius: 10px;
+            background: #1e3a8a;
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .alert-action-link:hover {
+            opacity: 0.92;
+        }
+    </style>
 </head>
 <body>
 
@@ -320,65 +427,181 @@ if ($intervention_alerts_result) {
                     <div class="status-item">
                         <div class="status-item-left">
                             <h4>Normal</h4>
-                            <p>Children with normal nutritional status</p>
+                            <p>Children with final overall normal status</p>
+                            <?php if (!empty($status_summary['Normal']['children'])) { ?>
+                                <ul class="status-children-list">
+                                    <?php foreach ($status_summary['Normal']['children'] as $child) { ?>
+                                        <li>
+                                            <?php echo htmlspecialchars($child['child_name']); ?>
+                                            <span>• <?php echo htmlspecialchars($child['cdc_name']); ?></span>
+                                        </li>
+                                    <?php } ?>
+                                </ul>
+                            <?php } else { ?>
+                                <div class="status-empty-note">No children listed in this category.</div>
+                            <?php } ?>
                         </div>
-                        <div class="status-badge"><?php echo $status_summary['Normal']; ?></div>
+                        <div class="status-badge"><?php echo $status_summary['Normal']['count']; ?></div>
                     </div>
 
                     <div class="status-item">
                         <div class="status-item-left">
                             <h4>Underweight</h4>
-                            <p>Children classified as underweight</p>
+                            <p>Children whose final overall status is underweight</p>
+                            <?php if (!empty($status_summary['Underweight']['children'])) { ?>
+                                <ul class="status-children-list">
+                                    <?php foreach ($status_summary['Underweight']['children'] as $child) { ?>
+                                        <li>
+                                            <?php echo htmlspecialchars($child['child_name']); ?>
+                                            <span>• <?php echo htmlspecialchars($child['cdc_name']); ?></span>
+                                        </li>
+                                    <?php } ?>
+                                </ul>
+                            <?php } else { ?>
+                                <div class="status-empty-note">No children listed in this category.</div>
+                            <?php } ?>
                         </div>
-                        <div class="status-badge"><?php echo $status_summary['Underweight']; ?></div>
+                        <div class="status-badge"><?php echo $status_summary['Underweight']['count']; ?></div>
                     </div>
 
                     <div class="status-item">
                         <div class="status-item-left">
                             <h4>Severely Underweight</h4>
-                            <p>Children needing closer monitoring</p>
+                            <p>Children whose final overall status is severely underweight</p>
+                            <?php if (!empty($status_summary['Severely Underweight']['children'])) { ?>
+                                <ul class="status-children-list">
+                                    <?php foreach ($status_summary['Severely Underweight']['children'] as $child) { ?>
+                                        <li>
+                                            <?php echo htmlspecialchars($child['child_name']); ?>
+                                            <span>• <?php echo htmlspecialchars($child['cdc_name']); ?></span>
+                                        </li>
+                                    <?php } ?>
+                                </ul>
+                            <?php } else { ?>
+                                <div class="status-empty-note">No children listed in this category.</div>
+                            <?php } ?>
                         </div>
-                        <div class="status-badge"><?php echo $status_summary['Severely Underweight']; ?></div>
-                    </div>
-
-                    <div class="status-item">
-                        <div class="status-item-left">
-                            <h4>Stunted</h4>
-                            <p>Height-for-age concern</p>
-                        </div>
-                        <div class="status-badge"><?php echo $status_summary['Stunted']; ?></div>
-                    </div>
-
-                    <div class="status-item">
-                        <div class="status-item-left">
-                            <h4>Moderately Wasted</h4>
-                            <p>Children classified as moderately wasted</p>
-                        </div>
-                        <div class="status-badge"><?php echo $status_summary['Moderately Wasted']; ?></div>
-                    </div>
-
-                    <div class="status-item">
-                        <div class="status-item-left">
-                            <h4>Severely Wasted</h4>
-                            <p>Children needing closer monitoring for severe wasting</p>
-                        </div>
-                        <div class="status-badge"><?php echo $status_summary['Severely Wasted']; ?></div>
+                        <div class="status-badge"><?php echo $status_summary['Severely Underweight']['count']; ?></div>
                     </div>
 
                     <div class="status-item">
                         <div class="status-item-left">
                             <h4>Overweight</h4>
-                            <p>Children classified as overweight</p>
+                            <p>Children whose final overall status is overweight</p>
+                            <?php if (!empty($status_summary['Overweight']['children'])) { ?>
+                                <ul class="status-children-list">
+                                    <?php foreach ($status_summary['Overweight']['children'] as $child) { ?>
+                                        <li>
+                                            <?php echo htmlspecialchars($child['child_name']); ?>
+                                            <span>• <?php echo htmlspecialchars($child['cdc_name']); ?></span>
+                                        </li>
+                                    <?php } ?>
+                                </ul>
+                            <?php } else { ?>
+                                <div class="status-empty-note">No children listed in this category.</div>
+                            <?php } ?>
                         </div>
-                        <div class="status-badge"><?php echo $status_summary['Overweight']; ?></div>
+                        <div class="status-badge"><?php echo $status_summary['Overweight']['count']; ?></div>
                     </div>
 
                     <div class="status-item">
                         <div class="status-item-left">
                             <h4>Obese</h4>
-                            <p>Children classified as obese</p>
+                            <p>Children whose final overall status is obese</p>
+                            <?php if (!empty($status_summary['Obese']['children'])) { ?>
+                                <ul class="status-children-list">
+                                    <?php foreach ($status_summary['Obese']['children'] as $child) { ?>
+                                        <li>
+                                            <?php echo htmlspecialchars($child['child_name']); ?>
+                                            <span>• <?php echo htmlspecialchars($child['cdc_name']); ?></span>
+                                        </li>
+                                    <?php } ?>
+                                </ul>
+                            <?php } else { ?>
+                                <div class="status-empty-note">No children listed in this category.</div>
+                            <?php } ?>
                         </div>
-                        <div class="status-badge"><?php echo $status_summary['Obese']; ?></div>
+                        <div class="status-badge"><?php echo $status_summary['Obese']['count']; ?></div>
+                    </div>
+
+                    <div class="status-item">
+                        <div class="status-item-left">
+                            <h4>Stunted</h4>
+                            <p>Children whose final overall status is stunted</p>
+                            <?php if (!empty($status_summary['Stunted']['children'])) { ?>
+                                <ul class="status-children-list">
+                                    <?php foreach ($status_summary['Stunted']['children'] as $child) { ?>
+                                        <li>
+                                            <?php echo htmlspecialchars($child['child_name']); ?>
+                                            <span>• <?php echo htmlspecialchars($child['cdc_name']); ?></span>
+                                        </li>
+                                    <?php } ?>
+                                </ul>
+                            <?php } else { ?>
+                                <div class="status-empty-note">No children listed in this category.</div>
+                            <?php } ?>
+                        </div>
+                        <div class="status-badge"><?php echo $status_summary['Stunted']['count']; ?></div>
+                    </div>
+
+                    <div class="status-item">
+                        <div class="status-item-left">
+                            <h4>Severely Stunted</h4>
+                            <p>Children whose final overall status is severely stunted</p>
+                            <?php if (!empty($status_summary['Severely Stunted']['children'])) { ?>
+                                <ul class="status-children-list">
+                                    <?php foreach ($status_summary['Severely Stunted']['children'] as $child) { ?>
+                                        <li>
+                                            <?php echo htmlspecialchars($child['child_name']); ?>
+                                            <span>• <?php echo htmlspecialchars($child['cdc_name']); ?></span>
+                                        </li>
+                                    <?php } ?>
+                                </ul>
+                            <?php } else { ?>
+                                <div class="status-empty-note">No children listed in this category.</div>
+                            <?php } ?>
+                        </div>
+                        <div class="status-badge"><?php echo $status_summary['Severely Stunted']['count']; ?></div>
+                    </div>
+
+                    <div class="status-item">
+                        <div class="status-item-left">
+                            <h4>Moderately Wasted</h4>
+                            <p>Children whose final overall status is moderately wasted</p>
+                            <?php if (!empty($status_summary['Moderately Wasted']['children'])) { ?>
+                                <ul class="status-children-list">
+                                    <?php foreach ($status_summary['Moderately Wasted']['children'] as $child) { ?>
+                                        <li>
+                                            <?php echo htmlspecialchars($child['child_name']); ?>
+                                            <span>• <?php echo htmlspecialchars($child['cdc_name']); ?></span>
+                                        </li>
+                                    <?php } ?>
+                                </ul>
+                            <?php } else { ?>
+                                <div class="status-empty-note">No children listed in this category.</div>
+                            <?php } ?>
+                        </div>
+                        <div class="status-badge"><?php echo $status_summary['Moderately Wasted']['count']; ?></div>
+                    </div>
+
+                    <div class="status-item">
+                        <div class="status-item-left">
+                            <h4>Severely Wasted</h4>
+                            <p>Children whose final overall status is severely wasted</p>
+                            <?php if (!empty($status_summary['Severely Wasted']['children'])) { ?>
+                                <ul class="status-children-list">
+                                    <?php foreach ($status_summary['Severely Wasted']['children'] as $child) { ?>
+                                        <li>
+                                            <?php echo htmlspecialchars($child['child_name']); ?>
+                                            <span>• <?php echo htmlspecialchars($child['cdc_name']); ?></span>
+                                        </li>
+                                    <?php } ?>
+                                </ul>
+                            <?php } else { ?>
+                                <div class="status-empty-note">No children listed in this category.</div>
+                            <?php } ?>
+                        </div>
+                        <div class="status-badge"><?php echo $status_summary['Severely Wasted']['count']; ?></div>
                     </div>
                 </div>
             </div>
@@ -413,9 +636,14 @@ if ($intervention_alerts_result) {
                     <div class="alert-list">
                         <?php foreach ($intervention_alerts as $alert) { ?>
                             <div class="alert-item">
-                                <h4><?php echo htmlspecialchars($alert['title']); ?></h4>
+                                <h4><?php echo htmlspecialchars($alert['child_name']); ?> • <?php echo htmlspecialchars($alert['nutritional_status']); ?></h4>
                                 <p><?php echo htmlspecialchars($alert['description']); ?></p>
                                 <div class="item-meta"><?php echo htmlspecialchars($alert['meta']); ?></div>
+                                <div class="alert-actions">
+                                    <a href="intervention_guidance.php?child_id=<?php echo (int)$alert['child_id']; ?>" class="alert-action-link">
+                                        Manage Intervention
+                                    </a>
+                                </div>
                             </div>
                         <?php } ?>
                     </div>
@@ -423,8 +651,7 @@ if ($intervention_alerts_result) {
                     <div class="empty-box">
                         No intervention alerts available yet.
                         <br><br>
-                        This panel is reserved for:
-                        At-Risk children, no-improvement-for-2-months alerts, and advisory intervention guidance.
+                        This panel is reserved for officially saved at-risk intervention guidance records.
                     </div>
                 <?php } ?>
             </div>
@@ -435,6 +662,7 @@ if ($intervention_alerts_result) {
                 <div class="quick-actions">
                     <a href="child_records.php" class="quick-btn navy">Child Records</a>
                     <a href="monitoring_reports.php" class="quick-btn navy">Monitoring Reports</a>
+                    <a href="intervention_guidance.php" class="quick-btn navy">Intervention Guidance</a>
                     <a href="add_cdc.php" class="quick-btn navy">CDC Management</a>
                     <a href="add_user.php" class="quick-btn navy">User Management</a>
                 </div>

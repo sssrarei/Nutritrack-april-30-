@@ -13,7 +13,7 @@
         </a>
 
         <a href="anthropometric_records.php" class="sidebar-link <?php echo ($current_page == 'anthropometric_records.php' || $current_page == 'anthropometric_list.php') ? 'active' : ''; ?>">
-            Input Height, Weight and MUAC
+            Anthropometric Data
         </a>
 
         <a href="feeding_list.php" class="sidebar-link <?php echo ($current_page == 'feeding_list.php' || $current_page == 'feeding.php') ? 'active' : ''; ?>">
