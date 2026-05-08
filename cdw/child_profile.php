@@ -51,6 +51,7 @@ $sql = "
     LEFT JOIN child_health_information ON children.child_id = child_health_information.child_id
     WHERE children.child_id = ?
     AND children.cdc_id = ?
+    AND children.is_deleted = 0
     LIMIT 1
 ";
 
@@ -330,9 +331,9 @@ if ($guardian_submission_feature_enabled) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Child Profile | NutriTrack</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../assets/cdw-style.css">
-    <link rel="stylesheet" href="../assets/child_profile.css">
-    <link rel="stylesheet" href="../assets/cdw-topbar-notification.css">
+    <link rel="stylesheet" href="../assets/cdw/cdw-style.css">
+    <link rel="stylesheet" href="../assets/cdw/child_profile.css">
+    <link rel="stylesheet" href="../assets/cdw/cdw-topbar-notification.css">
 
     <style>
         body.dark-mode{
@@ -386,6 +387,32 @@ if ($guardian_submission_feature_enabled) {
             background:#2E7D32;
             color:#ffffff;
         }
+
+         body.dark-mode .btn-delete{
+            background:#1e293b;
+            color:#f8fafc;
+            border:1px solid #334155;
+        }
+/*
+        .btn-delete {
+        background: #E74C3C;
+        color: #fff;
+        padding: 10px 14px;
+        border-radius: 6px;
+        text-decoration: none;
+        margin-left: 10px;
+        display: inline-block;
+        font-family: 'Inter', sans-serif; 
+        font-size: 13px;
+        font-weight: 600;
+        }
+
+.btn-delete:hover {
+    background: #c0392b;
+}
+
+*/
+
     </style>
 </head>
 <body class="<?php echo ($theme_mode === 'dark') ? 'dark-mode' : ''; ?>">
@@ -552,6 +579,13 @@ if ($guardian_submission_feature_enabled) {
 
             <div class="card-actions">
                 <a href="edit_child.php?child_id=<?php echo $child['child_id']; ?>" class="btn-edit">Edit Child Information</a>
+                  
+              <!-- <a href="delete_child.php?child_id=<?php echo $child['child_id']; ?>" 
+            class="btn-delete"
+                onclick="return confirm('Are you sure you want to delete this child?');">
+                Delete Child</a>
+                -->
+
             </div>
         </div>
 

@@ -359,6 +359,7 @@ if(isset($_POST['save_feeding'])){
                     SELECT child_id
                     FROM children
                     WHERE child_id = ? AND cdc_id = ?
+                    AND is_deleted = 0
                     LIMIT 1
                 ");
 
@@ -525,11 +526,12 @@ if($recent_result && $recent_result->num_rows > 0){
     <title>Supplementary Feeding | NutriTrack</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../assets/cdw-style.css?v=6">
-    <link rel="stylesheet" href="../assets/feeding.css?v=6">
-    <link rel="stylesheet" href="../assets/cdw-topbar-notification.css?v=6">
+    <link rel="stylesheet" href="../assets/cdw/cdw-style.css?v=6">
+    <link rel="stylesheet" href="../assets/cdw/feeding.css?v=6">
+    <link rel="stylesheet" href="../assets/cdw/cdw-topbar-notification.css?v=6">
 </head>
-<body>
+<?php include __DIR__ . '/../includes/auth.php'; ?>
+<body class="<?php echo themeClass(); ?>">
 
 <?php include '../includes/cdw_topbar.php'; ?>
 <?php include '../includes/cdw_sidebar.php'; ?>

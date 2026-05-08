@@ -137,7 +137,7 @@ if(isset($_SESSION['active_cdc_id']) && !empty($_SESSION['active_cdc_id'])){
     }
 
     // Latest nutritional status counts per child under active CDC only
-    $summary_sql = "
+     $summary_sql = "
         SELECT
             SUM(
                 CASE
@@ -154,7 +154,7 @@ if(isset($_SESSION['active_cdc_id']) && !empty($_SESSION['active_cdc_id'])){
             SUM(CASE WHEN ar.hfa_status = 'Stunted' THEN 1 ELSE 0 END) AS stunted_count,
             SUM(CASE WHEN ar.hfa_status = 'Severely Stunted' THEN 1 ELSE 0 END) AS severely_stunted_count,
 
-            SUM(CASE WHEN ar.wflh_status = 'Moderately Wasted' THEN 1 ELSE 0 END) AS moderately_wasted_count,
+            SUM(CASE WHEN ar.wflh_status = 'Wasted' THEN 1 ELSE 0 END) AS moderately_wasted_count,
             SUM(CASE WHEN ar.wflh_status = 'Severely Wasted' THEN 1 ELSE 0 END) AS severely_wasted_count,
             SUM(CASE WHEN ar.wflh_status = 'Overweight' THEN 1 ELSE 0 END) AS overweight_count,
             SUM(CASE WHEN ar.wflh_status = 'Obese' THEN 1 ELSE 0 END) AS obese_count
@@ -177,6 +177,7 @@ if(isset($_SESSION['active_cdc_id']) && !empty($_SESSION['active_cdc_id'])){
             FROM anthropometric_records ar3
             INNER JOIN children c3 ON ar3.child_id = c3.child_id
             WHERE c3.cdc_id = '$active_cdc_id'
+            AND ar3.is_deleted = 0
             GROUP BY ar3.child_id, ar3.date_recorded
         ) latest_id
             ON ar.child_id = latest_id.child_id
@@ -184,6 +185,7 @@ if(isset($_SESSION['active_cdc_id']) && !empty($_SESSION['active_cdc_id'])){
             AND ar.record_id = latest_id.latest_record_id
 
         WHERE c.cdc_id = '$active_cdc_id'
+        AND ar.is_deleted = 0
     ";
 
     $summary_result = mysqli_query($conn, $summary_sql);
@@ -278,9 +280,9 @@ $is_dark_mode = ($theme_mode === 'dark');
     <title>CDW Dashboard | NutriTrack</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../assets/cdw-style.css">
-    <link rel="stylesheet" href="../assets/cdw-dashboard.css">
-    <link rel="stylesheet" href="../assets/cdw-topbar-notification.css">
+    <link rel="stylesheet" href="../assets/cdw/cdw-style.css">
+    <link rel="stylesheet" href="../assets/cdw/cdw-dashboard.css">
+    <link rel="stylesheet" href="../assets/cdw/cdw-topbar-notification.css">
 </head>
 <body class="<?php echo ($theme_mode === 'dark') ? 'dark-mode' : ''; ?>">
 <?php include '../includes/cdw_topbar.php'; ?>

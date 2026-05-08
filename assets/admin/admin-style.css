@@ -169,10 +169,11 @@ a{
     background:var(--hover-bg);
 }
 
-.sidebar-link.active{
-    background:var(--active-bg);
-    color:var(--accent);
-    font-weight:700;
+.sidebar-link.active,
+.sidebar-sublink.active {
+    background: var(--active-bg);
+    color: var(--accent);
+    font-weight: 700;
 }
 
 /* OVERLAY */
@@ -913,3 +914,4 @@ a{
     font-size: 13px;
     color: #6b7280;
 }
+

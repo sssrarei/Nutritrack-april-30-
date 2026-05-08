@@ -373,3 +373,76 @@ tr:hover{
         min-width:unset;
     }
 }
+/* =========================
+   DARK MODE SUPPORT
+========================= */
+
+body.dark-mode .page-header,
+body.dark-mode .search-card,
+body.dark-mode .pupil-item,
+body.dark-mode .content-card,
+body.dark-mode .card-header,
+body.dark-mode .child-summary{
+    background:#111827;
+    border-color:#334155;
+}
+
+body.dark-mode .page-title,
+body.dark-mode .search-card-title,
+body.dark-mode .list-label,
+body.dark-mode .pupil-name,
+body.dark-mode .summary-item strong,
+body.dark-mode .card-header{
+    color:#f8fafc;
+}
+
+body.dark-mode .page-subtitle,
+body.dark-mode .summary-item,
+body.dark-mode .empty-state,
+body.dark-mode .no-records{
+    color:#cbd5e1;
+}
+
+body.dark-mode .form-label{
+    color:#cbd5e1;
+}
+
+body.dark-mode .form-control,
+body.dark-mode .search-input{
+    background:#0f172a;
+    border-color:#475569;
+    color:#f8fafc;
+}
+
+body.dark-mode .form-control:focus,
+body.dark-mode .search-input:focus{
+    box-shadow:0 0 0 3px rgba(74,222,128,0.15);
+    border-color:#4ade80;
+}
+
+body.dark-mode .btn-save,
+body.dark-mode .search-btn,
+body.dark-mode .open-btn{
+    background:#22c55e;
+}
+
+body.dark-mode .btn-cancel{
+    background:#1e293b;
+    border-color:#334155;
+    color:#f8fafc;
+}
+
+body.dark-mode tr:hover{
+    background:#1e293b;
+}
+
+body.dark-mode th{
+    background:#1e293b;
+    color:#f8fafc;
+    border-color:#334155;
+}
+
+body.dark-mode td{
+    border-color:#334155;
+    color:#e2e8f0;
+}

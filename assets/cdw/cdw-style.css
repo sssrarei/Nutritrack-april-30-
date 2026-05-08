@@ -1,0 +1,570 @@
+/* RESET */
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+/* =========================
+   THEME VARIABLES
+========================= */
+:root{
+    --page-bg:#eef0f3;
+    --card-bg:#ffffff;
+    --card-subtle:#f7f7f7;
+
+    --danger-bg:#ffebee;
+    --danger-text:#c62828;
+    --danger-border:#ef9a9a;
+
+    --text-color:#333333;
+    --muted-text:#666666;
+
+    --border-color:#dcdcdc;
+    --border-light:#eeeeee;
+
+    --input-bg:#ffffff;
+    --input-border:#cfcfcf;
+    --readonly-bg:#f5f5f5;
+
+    --hover-bg:#f4f7f4;
+    --active-bg:#e8f3e9;
+
+    --accent:#2E7D32;
+
+    --table-head:#f7f7f7;
+
+    --btn-primary:#2E7D32;
+
+    --success-bg:#e8f5e9;
+    --success-text:#2e7d32;
+    --success-border:#c8e6c9;
+
+    --warning-text:#c27c0e;
+}
+
+body.dark-mode{
+    --page-bg:#0f172a;
+    --card-bg:#111827;
+    --card-subtle:#1e293b;
+
+    --danger-bg:#3b1a1a;
+    --danger-text:#f87171;
+    --danger-border:#7f1d1d;
+
+    --text-color:#f8fafc;
+    --muted-text:#cbd5e1;
+
+    --border-color:#334155;
+    --border-light:#334155; /* ADD THIS */
+
+    --input-bg:#0f172a;
+    --input-border:#475569;
+    --readonly-bg:#1e293b;
+
+    --hover-bg:#1e293b;
+    --active-bg:#1f3a28;
+
+    --accent:#4ade80;
+
+    --table-head:#1e293b;
+
+    --success-bg:#16351d;
+    --success-text:#bbf7d0;
+    --success-border:#2f6a3f;
+
+    --warning-text:#fbbf24;
+}
+
+/* =========================
+   BODY
+========================= */
+body{
+    background:var(--page-bg);
+    font-family:'Inter', sans-serif;
+    color:var(--text-color);
+}
+
+a{
+    text-decoration:none;
+}
+
+/* =========================
+   TOPBAR
+========================= */
+.topbar{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:80px;
+    background:var(--card-bg);
+    border-bottom:1px solid var(--border-color);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 20px;
+    z-index:1100;
+}
+
+.topbar-left{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.menu-toggle{
+    border:none;
+    background:transparent;
+    display:flex;
+    flex-direction:column;
+    gap:5px;
+    cursor:pointer;
+}
+
+.menu-toggle span{
+    width:20px;
+    height:2px;
+    background:var(--text-color);
+}
+
+.topbar-logo{
+    height:50px;
+}
+
+.topbar-right{
+    display:flex;
+    align-items:center;
+    gap:20px;
+}
+
+.notif-text{
+    font-size:10px;
+    font-weight:600;
+    color:var(--text-color);
+}
+
+.user-text{
+    font-size:10px;
+    font-weight:600;
+    color:var(--accent);
+}
+
+.logout-btn{
+    padding:8px 14px;
+    border:1px solid var(--border-color);
+    border-radius:8px;
+    background:var(--card-bg);
+    font-size:13px;
+    font-weight:600;
+    color:var(--text-color);
+}
+
+/* =========================
+   SIDEBAR
+========================= */
+.sidebar{
+    position:fixed;
+    top:80px;
+    left:0;
+    width:260px;
+    height:calc(100vh - 80px);
+    background:var(--card-bg);
+    border-right:1px solid var(--border-color);
+    overflow-y:auto;
+    z-index:1050;
+    transition:transform 0.25s ease;
+}
+
+.sidebar.closed{
+    transform:translateX(-100%);
+}
+
+.sidebar-header{
+    padding:18px;
+    font-family:'Poppins', sans-serif;
+    font-weight:700;
+    color:var(--text-color);
+}
+
+.sidebar-label{
+    padding:10px 18px;
+    font-size:12px;
+    font-weight:700;
+    color:var(--muted-text);
+}
+
+.sidebar-section{
+    padding:0 12px;
+}
+
+.sidebar-link{
+    display:block;
+    padding:12px;
+    margin-bottom:6px;
+    border-radius:8px;
+    font-size:14px;
+    color:var(--text-color);
+}
+
+.sidebar-link:hover{
+    background:var(--hover-bg);
+}
+
+.sidebar-link.active{
+    background:var(--active-bg);
+    color:var(--accent);
+    font-weight:700;
+}
+
+/* =========================
+   MAIN CONTENT
+========================= */
+.main-content{
+    margin-left:260px;
+    padding:100px 24px 24px;
+}
+
+.main-content.full{
+    margin-left:0;
+}
+
+.sidebar-overlay{
+    display:none;
+}
+
+.sidebar-overlay.show{
+    display:block;
+    position:fixed;
+    top:80px;
+    left:0;
+    width:100%;
+    height:calc(100vh - 80px);
+    background:rgba(0,0,0,0.25);
+    z-index:1040;
+}
+
+/* =========================
+   GLOBAL HELPERS
+========================= */
+.page-header,
+.content-card,
+.date-group-card,
+.child-block,
+.report-item,
+.prepared-by,
+.appearance-box{
+    background:var(--card-bg);
+    border:1px solid var(--border-color);
+    color:var(--text-color);
+}
+
+.form-control,
+input,
+select,
+textarea{
+    background:var(--input-bg);
+    color:var(--text-color);
+    border:1px solid var(--input-border);
+}
+
+input[readonly],
+textarea[readonly]{
+    background:var(--readonly-bg);
+}
+
+table th{
+    background:var(--table-head);
+    color:var(--text-color);
+    border:1px solid var(--border-color);
+}
+
+table td{
+    color:var(--text-color);
+    border:1px solid var(--border-color);
+}
+
+/* =========================
+   GUARDIAN SUBMISSION
+========================= */
+.guardian-submission-title{
+    margin-top:22px;
+}
+
+.guardian-submission-box{
+    margin-top:10px;
+    border:1px solid var(--border-color);
+    border-radius:14px;
+    background:var(--card-bg);
+    padding:14px 16px 16px;
+}
+
+.guardian-submission-message{
+    margin-top:16px;
+    margin-bottom:4px;
+    padding:12px 14px;
+    border-radius:10px;
+    font-size:13px;
+    font-weight:600;
+}
+
+.guardian-submission-message.success{
+    background:var(--success-bg);
+    color:var(--success-text);
+    border:1px solid var(--success-border);
+}
+
+.pending-status{
+    color:var(--warning-text);
+    font-weight:700;
+}
+
+.guardian-submission-actions{
+    margin-top:16px;
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+}
+
+.guardian-submission-form{
+    margin:0;
+}
+
+.btn-guardian-approve,
+.btn-guardian-reject{
+    border:none;
+    border-radius:10px;
+    padding:10px 14px;
+    font-size:13px;
+    font-weight:600;
+    font-family:'Inter', sans-serif;
+    cursor:pointer;
+    transition:0.2s ease;
+}
+
+.btn-guardian-approve{
+    background:var(--accent);
+    color:#fff;
+}
+
+.btn-guardian-approve:hover{
+    opacity:0.9;
+}
+
+.btn-guardian-reject{
+    background:var(--danger-text);
+    color:#fff;
+}
+
+.btn-guardian-reject:hover{
+    background:#a93226;
+}
+
+/* =========================
+   MOBILE
+========================= */
+@media (max-width: 991px){
+    .sidebar{
+        transform:translateX(-100%);
+    }
+
+    .sidebar.open{
+        transform:translateX(0);
+    }
+
+    .main-content{
+        margin-left:0;
+        padding:100px 16px;
+    }
+}
+/* =========================
+   WMR FULL DARK MODE FIX
+   (ADD TO cdw-style.css)
+========================= */
+
+/* PAGE BACKGROUND + TEXT */
+body.dark-mode .main-content{
+    background:var(--page-bg);
+    color:var(--text-color);
+}
+
+/* PAGE HEADER */
+body.dark-mode .page-header{
+    background:var(--card-bg);
+    border:1px solid var(--border-color);
+}
+
+body.dark-mode .page-title{
+    color:var(--text-color);
+}
+
+body.dark-mode .page-subtitle{
+    color:var(--muted-text);
+}
+
+body.dark-mode .back-link{
+    color:var(--accent);
+}
+
+/* CONTENT CARD */
+body.dark-mode .content-card{
+    background:var(--card-bg);
+    border:1px solid var(--border-color);
+}
+
+/* FILTER AREA */
+body.dark-mode .form-group label{
+    color:var(--muted-text);
+}
+
+body.dark-mode .form-control{
+    background:var(--input-bg);
+    color:var(--text-color);
+    border:1px solid var(--input-border);
+}
+
+/* BUTTONS */
+body.dark-mode .btn-reset{
+    background:var(--card-bg);
+    color:var(--text-color);
+    border:1px solid var(--border-color);
+}
+
+/* META CARDS */
+body.dark-mode .meta-card{
+    background:var(--card-bg);
+    border:1px solid var(--border-color);
+}
+
+body.dark-mode .meta-label{
+    color:var(--muted-text);
+}
+
+body.dark-mode .meta-value{
+    color:var(--text-color);
+}
+
+/* =========================
+   TABLE (FULL DARK FIX)
+========================= */
+body.dark-mode .wmr-table{
+    background:var(--card-bg);
+    color:var(--text-color);
+}
+
+body.dark-mode .wmr-table th{
+    background:var(--table-head);
+    color:var(--text-color);
+    border-color:var(--border-color);
+}
+
+body.dark-mode .wmr-table td{
+    background:var(--card-bg);
+    color:var(--text-color);
+    border-color:var(--border-color);
+}
+
+/* TABLE HOVER (optional nice touch) */
+body.dark-mode .wmr-table tr:hover{
+    background:var(--hover-bg);
+}
+
+/* BADGES */
+.badge-baseline{
+    background:var(--card-subtle);
+    color:var(--text-color);
+}
+
+.badge-submitted{
+    background:var(--success-bg);
+    color:var(--success-text);
+}
+
+.badge-draft{
+    background:var(--danger-bg);
+    color:var(--danger-text);
+}
+
+/* STATUS TEXT */
+body.dark-mode .status-text{
+    color:var(--text-color);
+}
+
+/* NO DATA TEXT */
+body.dark-mode .no-data{
+    color:var(--muted-text);
+}
+
+/* TABLE WRAPPER */
+body.dark-mode .table-wrapper{
+    background:var(--card-bg);
+}
+/* =========================
+   NUTRITRACK PLUG & PLAY UI
+========================= */
+
+/* CARD */
+.nt-card{
+    background:var(--card-bg);
+    border:1px solid var(--border-color);
+    border-radius:14px;
+    padding:20px;
+}
+
+/* CARD HEADER */
+.nt-card-header{
+    font-weight:700;
+    margin-bottom:12px;
+    color:var(--text-color);
+}
+
+/* MUTED TEXT */
+.nt-muted{
+    color:var(--muted-text);
+}
+
+/* BUTTON */
+.nt-btn{
+    background:var(--accent);
+    color:#fff;
+    border:none;
+    border-radius:8px;
+    padding:10px 14px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+}
+
+/* INPUT */
+.nt-input{
+    width:100%;
+    padding:10px;
+    border-radius:8px;
+    border:1px solid var(--input-border);
+    background:var(--input-bg);
+    color:var(--text-color);
+}
+
+/* TABLE */
+.nt-table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+.nt-table th{
+    background:var(--card-subtle);
+    color:var(--text-color);
+    border:1px solid var(--border-color);
+    padding:10px;
+}
+
+.nt-table td{
+    border:1px solid var(--border-light);
+    padding:10px;
+    color:var(--text-color);
+}
+
+.nt-table tr:hover{
+    background:var(--hover-bg);
+}
+

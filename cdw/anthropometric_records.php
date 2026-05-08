@@ -125,7 +125,9 @@ if(!$view_only && isset($_POST['save_record'])){
     $child_stmt = $conn->prepare("
         SELECT child_id, birthdate, sex, cdc_id
         FROM children
-        WHERE child_id = ? AND cdc_id = ?
+        WHERE child_id = ?
+        AND cdc_id = ?
+        AND is_deleted = 0
         LIMIT 1
     ");
     $child_stmt->bind_param("ii", $child_id_post, $active_cdc_id);
@@ -162,7 +164,7 @@ if(!$view_only && isset($_POST['save_record'])){
             $check_existing_stmt = $conn->prepare("
                 SELECT record_id, assessment_type, date_recorded
                 FROM anthropometric_records
-                WHERE child_id = ?
+                WHERE child_id = ? 
             ");
             $check_existing_stmt->bind_param("i", $child_id_post);
             $check_existing_stmt->execute();
@@ -403,9 +405,10 @@ if($child_id > 0){
     <title><?php echo $view_only ? 'Anthropometric Record History' : 'Input Height, Weight and MUAC'; ?> | NutriTrack</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../assets/cdw-style.css">
-    <link rel="stylesheet" href="../assets/cdw-topbar-notification.css">
-    <link rel="stylesheet" href="../assets/anthropometric.css">
+    <link rel="stylesheet" href="../assets/cdw/cdw-style.css">
+    <link rel="stylesheet" href="../assets/cdw/cdw-topbar-notification.css">
+    <link rel="stylesheet" href="../assets/cdw/anthropometric.css">
+    
 
     <style>
         .measurements-table {
@@ -560,8 +563,9 @@ if($child_id > 0){
         }
     </style>
 </head>
-<body>
-
+<?php include __DIR__ . '/../includes/auth.php'; ?>
+<body class="<?php echo themeClass(); ?>">
+    
 <?php include '../includes/cdw_topbar.php'; ?>
 <?php include '../includes/cdw_sidebar.php'; ?>
 

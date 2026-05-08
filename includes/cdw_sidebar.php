@@ -4,10 +4,6 @@
     <div class="sidebar-header">MENU</div>
 
     <div class="sidebar-section">
-        <a href="dashboard.php" class="sidebar-link <?php echo ($current_page == 'dashboard.php') ? 'active' : ''; ?>">
-            Dashboard
-        </a>
-
         <a href="child_list.php" class="sidebar-link <?php echo ($current_page == 'child_list.php' || $current_page == 'child_profile.php' || $current_page == 'add_child.php' || $current_page == 'edit_child.php' || $current_page == 'edit_guardian.php') ? 'active' : ''; ?>">
             Pupil Records
         </a>
@@ -31,15 +27,15 @@
 
     <div class="sidebar-label">Reports</div>
     <div class="sidebar-section">
-        <a href="wmr_report.php" class="sidebar-link <?php echo ($current_page == 'wmr.php') ? 'active' : ''; ?>">
+        <a href="wmr_report.php" class="sidebar-link <?php echo ($current_page == 'wmr_report.php') ? 'active' : ''; ?>">
             WMR
         </a>
 
-        <a href="masterlist_beneficiaries.php" class="sidebar-link <?php echo ($current_page == 'masterlist.php') ? 'active' : ''; ?>">
+        <a href="masterlist_beneficiaries.php" class="sidebar-link <?php echo ($current_page == 'masterlist_beneficiaries.php') ? 'active' : ''; ?>">
             Masterlist of Beneficiaries
         </a>
 
-        <a href="feeding_attendance_report.php" class="sidebar-link <?php echo ($current_page == 'feeding_attendance.php') ? 'active' : ''; ?>">
+        <a href="feeding_attendance_report.php" class="sidebar-link <?php echo ($current_page == 'feeding_attendance_report.php') ? 'active' : ''; ?>">
             Feeding Attendance
         </a>
 
@@ -68,3 +64,16 @@
 </div>
 
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const activeLink = document.querySelector(".sidebar-link.active");
+
+    if (activeLink) {
+        activeLink.scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+        });
+    }
+});
+</script>

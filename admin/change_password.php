@@ -46,8 +46,8 @@ if (isset($_POST['change_password'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Change Password</title>
-    <link rel="stylesheet" href="../assets/admin-style.css">
-    <link rel="stylesheet" href="../assets/admin_change_password.css">
+    <link rel="stylesheet" href="../assets/admin/admin-style.css">
+    <link rel="stylesheet" href="../assets/admin/admin_change_password.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 <body class="<?php echo (isset($_SESSION['theme_mode']) && $_SESSION['theme_mode'] === 'dark') ? 'dark-mode' : ''; ?>">
@@ -101,48 +101,7 @@ if (isset($_POST['change_password'])) {
     </div>
 </div>
 
-<script>
-const menuToggle = document.getElementById('menuToggle');
-const sidebar = document.getElementById('sidebar');
-const sidebarOverlay = document.getElementById('sidebarOverlay');
-const mainContent = document.getElementById('mainContent');
 
-function handleDesktopToggle() {
-    if (!sidebar || !mainContent) return;
-    sidebar.classList.toggle('hidden');
-    mainContent.classList.toggle('full');
-}
-
-function handleMobileToggle() {
-    if (!sidebar || !sidebarOverlay) return;
-    sidebar.classList.toggle('show');
-    sidebarOverlay.classList.toggle('show');
-}
-
-if (menuToggle && sidebar) {
-    menuToggle.addEventListener('click', function () {
-        if (window.innerWidth <= 991) {
-            handleMobileToggle();
-        } else {
-            handleDesktopToggle();
-        }
-    });
-}
-
-if (sidebarOverlay) {
-    sidebarOverlay.addEventListener('click', function () {
-        sidebar.classList.remove('show');
-        sidebarOverlay.classList.remove('show');
-    });
-}
-
-window.addEventListener('resize', function () {
-    if (window.innerWidth > 991 && sidebar && sidebarOverlay) {
-        sidebar.classList.remove('show');
-        sidebarOverlay.classList.remove('show');
-    }
-});
-</script>
-
+<script src="../assets/admin/sidebar.js"></script>
 </body>
 </html>

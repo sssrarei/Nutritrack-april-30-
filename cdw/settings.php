@@ -132,8 +132,8 @@ $theme_mode = $_SESSION['theme_mode'];
     <title>Settings | NutriTrack</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../assets/cdw-style.css">
-    <link rel="stylesheet" href="../assets/cdw-topbar-notification.css">
+    <link rel="stylesheet" href="../assets/cdw/cdw-style.css">
+    <link rel="stylesheet" href="../assets/cdw/cdw-topbar-notification.css">
 
     <style>
         .main-content{
@@ -537,16 +537,9 @@ $theme_mode = $_SESSION['theme_mode'];
 
         <div class="content-card">
             <div class="section-title">Appearance Preference</div>
-            <div class="section-subtitle">
-                Choose how your CDW pages will look during your current session.
-            </div>
-
             <form method="POST">
                 <div class="appearance-box">
                     <div class="appearance-title">Dark Mode</div>
-                    <div class="appearance-note">
-                        Turn this on if you want a darker interface while using the system.
-                    </div>
 
                     <div class="toggle-row">
                         <div class="toggle-label" id="themeLabel">
@@ -565,16 +558,6 @@ $theme_mode = $_SESSION['theme_mode'];
                         <button type="submit" name="save_theme" class="btn btn-save">Save Appearance</button>
                     </div>
                 </div>
-
-                <table class="preference-table">
-                    <tr>
-                        <th>Preference</th>
-                        <td><?php echo ($theme_mode === 'dark') ? 'Dark Mode' : 'Light Mode'; ?></td>
-                    </tr>
-                    <tr>
-                        <th>Applies To</th>
-                        <td>All CDW pages during the current session</td>
-                    </tr>
                 </table>
             </form>
         </div>
@@ -610,11 +593,11 @@ themeToggle.addEventListener('change', function () {
     if (this.checked) {
         body.classList.add('dark-mode');
         themeModeInput.value = 'dark';
-        themeLabel.textContent = 'Dark Mode Enabled';
+        themeLabel.textContent = 'Dark Mode';
     } else {
         body.classList.remove('dark-mode');
         themeModeInput.value = 'light';
-        themeLabel.textContent = 'Light Mode Enabled';
+        themeLabel.textContent = 'Light Mode';
     }
 });
 </script>

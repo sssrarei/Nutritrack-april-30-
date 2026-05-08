@@ -37,23 +37,25 @@ function compute_age_months_from_birthdate($birthdate){
 
 if ($search !== "") {
     $child_sql = "SELECT child_id, first_name, middle_name, last_name, sex, birthdate
-                  FROM children
-                  WHERE cdc_id = ?
-                    AND (
-                        first_name LIKE ?
-                        OR middle_name LIKE ?
-                        OR last_name LIKE ?
-                    )
-                  ORDER BY first_name ASC, last_name ASC";
+              FROM children
+              WHERE cdc_id = ?
+                AND is_deleted = 0
+                AND (
+                    first_name LIKE ?
+                    OR middle_name LIKE ?
+                    OR last_name LIKE ?
+                )
+              ORDER BY first_name ASC, last_name ASC";
 
     $child_stmt = $conn->prepare($child_sql);
     $search_param = "%" . $search . "%";
     $child_stmt->bind_param("isss", $cdc_id, $search_param, $search_param, $search_param);
 } else {
     $child_sql = "SELECT child_id, first_name, middle_name, last_name, sex, birthdate
-                  FROM children
-                  WHERE cdc_id = ?
-                  ORDER BY first_name ASC, last_name ASC";
+              FROM children
+              WHERE cdc_id = ?
+                AND is_deleted = 0
+              ORDER BY first_name ASC, last_name ASC";
 
     $child_stmt = $conn->prepare($child_sql);
     $child_stmt->bind_param("i", $cdc_id);
@@ -69,8 +71,8 @@ $child_result = $child_stmt->get_result();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pupil Records | NutriTrack</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../assets/cdw-style.css">
-    <link rel="stylesheet" href="../assets/cdw-topbar-notification.css">
+    <link rel="stylesheet" href="../assets/cdw/cdw-style.css">
+    <link rel="stylesheet" href="../assets/cdw/cdw-topbar-notification.css">
     <style>
         *{
             box-sizing:border-box;

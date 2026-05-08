@@ -105,6 +105,7 @@ if(isset($_POST['save_milk_records'])){
             $validate_child_sql = "SELECT child_id 
                                    FROM children 
                                    WHERE child_id = ? AND cdc_id = ?
+                                   AND is_deleted = 0
                                    LIMIT 1";
             $validate_child_stmt = $conn->prepare($validate_child_sql);
 
@@ -197,26 +198,31 @@ if($selected_cdc_id > 0){
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Milk Feeding | NutriTrack</title>
 
-    <link rel="stylesheet" href="../assets/cdw-style.css">
-    <link rel="stylesheet" href="../assets/milk_feeding.css">
-    <link rel="stylesheet" href="../assets/cdw-topbar-notification.css">
+    <link rel="stylesheet" href="../assets/cdw/cdw-style.css">
+    <link rel="stylesheet" href="../assets/cdw/milk_feeding.css">
+    <link rel="stylesheet" href="../assets/cdw/cdw-topbar-notification.css">
 </head>
-<body>
+<?php include __DIR__ . '/../includes/auth.php'; ?>
+<body class="<?php echo themeClass(); ?>">
 
 <div class="main-container">
 
     <?php include '../includes/cdw_sidebar.php'; ?>
 
-    <div class="content" id="mainContent">
+    <div class="main-content" id="mainContent">
 
         <?php include '../includes/cdw_topbar.php'; ?>
 
-        <div class="page-content">
+        <div class="page-wrapper">
 
             <div class="page-header">
-                <h2>Milk Feeding Form</h2>
-                <p class="page-subtitle">You may enter current or previous dates for late milk feeding records.</p>
+                <a href="dashboard.php" class="back-link">← Back to Dashboard</a>
+                <h1 class="page-title">Milk Feeding</h1>
+                <div class="page-subtitle">
+                    Record and update milk feeding data for pupils under your active CDC.
+                </div>
             </div>
+
 
             <?php if($message != ""){ ?>
                 <div class="alert-success"><?php echo $message; ?></div>
@@ -516,12 +522,12 @@ function toggleSidebar() {
 
     if (!sidebar || !content) return;
 
-    sidebar.classList.toggle("hide");
+    sidebar.classList.toggle("closed");
     content.classList.toggle("full");
 
-    if (overlay) {
-        overlay.classList.toggle("show");
-    }
+    if (overlay && window.innerWidth <= 991) {
+    overlay.classList.toggle("show");
+}
 
     const isHidden = sidebar.classList.contains("hide");
     localStorage.setItem("cdw_sidebar_hidden", isHidden ? "true" : "false");
@@ -534,12 +540,12 @@ function closeSidebar() {
 
     if (!sidebar || !content) return;
 
-    sidebar.classList.add("hide");
+    sidebar.classList.add("closed");
     content.classList.add("full");
 
-    if (overlay) {
-        overlay.classList.remove("show");
-    }
+    if (overlay && window.innerWidth <= 991) {
+    overlay.classList.remove("show");
+}
 
     localStorage.setItem("cdw_sidebar_hidden", "true");
 }

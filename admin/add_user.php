@@ -152,8 +152,8 @@ if ($search != "") {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Management</title>
-    <link rel="stylesheet" href="../assets/admin-style.css">
-    <link rel="stylesheet" href="../assets/add_user.css">
+    <link rel="stylesheet" href="../assets/admin/admin-style.css">
+    <link rel="stylesheet" href="../assets/admin/add_user.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 <body class="<?php echo (isset($_SESSION['theme_mode']) && $_SESSION['theme_mode'] === 'dark') ? 'dark-mode' : ''; ?>">
@@ -206,8 +206,8 @@ if ($search != "") {
         <button type="button" class="btn btn-primary" onclick="openAddUserForm()">Add User</button>
     </div>
 
-    <div class="form-card <?php echo ($error != '' || $success != '') ? 'show' : ''; ?>" id="addUserForm">
-        <div class="card-header">
+<div class="form-card" id="addUserForm">
+            <div class="card-header">
             <h2>Add CDW Account</h2>
             <p>Enter the account details and assign at least one CDC.</p>
         </div>
@@ -433,76 +433,19 @@ if ($search != "") {
     </div>
 </div>
 
+
+<script src="../assets/admin/admin/sidebar.js"></script>
+
 <script>
-function openAddUserForm() {
-    const form = document.getElementById('addUserForm');
-    form.classList.add('show');
-    form.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-function closeAddUserForm() {
-    document.getElementById('addUserForm').classList.remove('show');
-}
-
-function openProfileDrawer(button) {
-    document.getElementById('drawerName').textContent = button.dataset.name || '—';
-    document.getElementById('drawerRole').textContent = button.dataset.role || '—';
-    document.getElementById('drawerEmail').textContent = button.dataset.email || '—';
-    document.getElementById('drawerContact').textContent = button.dataset.contact || '—';
-    document.getElementById('drawerAddress').textContent = button.dataset.address || '—';
-    document.getElementById('drawerLinkLabel').textContent = button.dataset.linkLabel || 'Assigned CDC';
-    document.getElementById('drawerLinkValue').textContent = button.dataset.linkValue || '—';
-
-    document.getElementById('profileDrawer').classList.add('show');
-    document.getElementById('drawerOverlay').classList.add('show');
-}
-
-function closeProfileDrawer() {
-    document.getElementById('profileDrawer').classList.remove('show');
-    document.getElementById('drawerOverlay').classList.remove('show');
-}
-
-const menuToggle = document.getElementById('menuToggle');
-const sidebar = document.getElementById('sidebar');
-const sidebarOverlay = document.getElementById('sidebarOverlay');
-const mainContent = document.getElementById('mainContent');
-
-function handleDesktopToggle() {
-    if (!sidebar || !mainContent) return;
-    sidebar.classList.toggle('hidden');
-    mainContent.classList.toggle('full');
-}
-
-function handleMobileToggle() {
-    if (!sidebar || !sidebarOverlay) return;
-    sidebar.classList.toggle('show');
-    sidebarOverlay.classList.toggle('show');
-}
-
-if (menuToggle && sidebar) {
-    menuToggle.addEventListener('click', function () {
-        if (window.innerWidth <= 991) {
-            handleMobileToggle();
-        } else {
-            handleDesktopToggle();
-        }
-    });
-}
-
-if (sidebarOverlay) {
-    sidebarOverlay.addEventListener('click', function () {
-        sidebar.classList.remove('show');
-        sidebarOverlay.classList.remove('show');
-    });
-}
-
-window.addEventListener('resize', function () {
-    if (window.innerWidth > 991 && sidebar && sidebarOverlay) {
-        sidebar.classList.remove('show');
-        sidebarOverlay.classList.remove('show');
+    function openAddUserForm() {
+        document.getElementById('addUserForm').classList.add('show');
     }
-});
+
+    function closeAddUserForm() {
+        document.getElementById('addUserForm').classList.remove('show');
+    }
 </script>
+
 
 </body>
 </html>

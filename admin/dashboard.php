@@ -323,8 +323,8 @@ if ($intervention_alerts_result) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CSWD Dashboard | NutriTrack</title>
-    <link rel="stylesheet" href="../assets/admin-style.css">
-    <link rel="stylesheet" href="../assets/admin-topbar-notification.css">
+    <link rel="stylesheet" href="../assets/admin/admin-style.css">
+    <link rel="stylesheet" href="../assets/admin/admin-topbar-notification.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
     <style>
         .status-children-list {
@@ -382,8 +382,7 @@ if ($intervention_alerts_result) {
 
         <div class="page-header-card">
             <div class="page-header">
-                <h1>Dashboard Overview</h1>
-                <p>Centralized monitoring summary for CSWD Administrator.</p>
+                
             </div>
 
             <div class="summary-grid">

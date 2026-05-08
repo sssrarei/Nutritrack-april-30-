@@ -122,3 +122,4 @@ function checkNoImprovementForTwoMonths($records) {
 
     return (!$improved_month1 && !$improved_month2);
 }
+

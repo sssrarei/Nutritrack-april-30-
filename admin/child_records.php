@@ -263,7 +263,7 @@ if ($total_records > 0) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Child Records | NutriTrack</title>
-    <link rel="stylesheet" href="../assets/admin-style.css">
+    <link rel="stylesheet" href="../assets/admin/admin-style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -389,46 +389,7 @@ if ($total_records > 0) {
     </div>
 </div>
 
-<script>
-const menuToggle = document.getElementById('menuToggle');
-const sidebar = document.getElementById('sidebar');
-const sidebarOverlay = document.getElementById('sidebarOverlay');
-const mainContent = document.getElementById('mainContent');
 
-function handleDesktopToggle() {
-    sidebar.classList.toggle('hidden');
-    mainContent.classList.toggle('full');
-}
-
-function handleMobileToggle() {
-    sidebar.classList.toggle('show');
-    sidebarOverlay.classList.toggle('show');
-}
-
-if (menuToggle && sidebar) {
-    menuToggle.addEventListener('click', function () {
-        if (window.innerWidth <= 991) {
-            handleMobileToggle();
-        } else {
-            handleDesktopToggle();
-        }
-    });
-}
-
-if (sidebarOverlay) {
-    sidebarOverlay.addEventListener('click', function () {
-        sidebar.classList.remove('show');
-        sidebarOverlay.classList.remove('show');
-    });
-}
-
-window.addEventListener('resize', function () {
-    if (window.innerWidth > 991) {
-        sidebar.classList.remove('show');
-        sidebarOverlay.classList.remove('show');
-    }
-});
-</script>
-
+<script src="../assets/admin/sidebar.js"></script>
 </body>
 </html>

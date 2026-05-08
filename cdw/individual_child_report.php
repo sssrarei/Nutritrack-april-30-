@@ -186,8 +186,8 @@ if (!$show_details) {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Individual Child Report | NutriTrack</title>
         <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-        <link rel="stylesheet" href="../assets/cdw-style.css">
-        <link rel="stylesheet" href="../assets/individual_child_report.css">
+        <link rel="stylesheet" href="../assets/cdw/cdw-style.css">
+        <link rel="stylesheet" href="../assets/cdw/individual_child_report.css">
     </head>
     <body class="<?php echo ($theme_mode === 'dark') ? 'dark-mode' : ''; ?>">
 
@@ -694,8 +694,8 @@ mysqli_stmt_close($stmt_deworm);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Individual Child Report | NutriTrack</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../assets/cdw-style.css">
-    <link rel="stylesheet" href="../assets/individual_child_report.css">
+    <link rel="stylesheet" href="../assets/cdw/cdw-style.css">
+    <link rel="stylesheet" href="../assets/cdw/individual_child_report.css">    
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="<?php echo ($theme_mode === 'dark') ? 'dark-mode' : ''; ?>">

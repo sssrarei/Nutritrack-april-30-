@@ -262,15 +262,15 @@ input:focus{
     <div class="left-panel">
 
         <div class="logo">
-            <img src="NUTRITRACK-LOGO.svg">
+            <img src="NUTRITRACK-LOGO.png" alt="Logo">
             <span>NutriTrack</span>
         </div>
 
         <h1>Welcome back!</h1>
-        <h2>Login to your account</h2>
+        <h2>Log in to your account</h2>
         <p>
-            NutriTrack helps CDWs, Guardians, and CSWDs work together 
-            for healthier children and stronger communities.
+            Work together, stay informed, and make a difference.
+             NutriTrack connects CDWs, Guardians, and CSWDs to support healthier children and stronger communities.
         </p>
     </div>
 

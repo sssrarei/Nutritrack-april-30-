@@ -268,8 +268,8 @@ $date_range_display = get_date_range_display($date_from, $date_to);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feeding Attendance Report | NutriTrack</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../assets/cdw-style.css">
-    <link rel="stylesheet" href="../assets/cdw-topbar-notification.css">
+    <link rel="stylesheet" href="../assets/cdw/cdw-style.css">
+    <link rel="stylesheet" href="../assets/cdw/cdw-topbar-notification.css">
     <style>
         *{
             box-sizing:border-box;
@@ -423,10 +423,10 @@ $date_range_display = get_date_range_display($date_from, $date_to);
         .meta-box{
             margin-bottom:18px;
             padding:14px 16px;
-            background:#f8fbf8;
-            border:1px solid #dfe9df;
+            background:var(--card-subtle);
+            border:1px solid var(--border-color);
             border-radius:10px;
-        }
+}
 
         .meta-grid{
             display:grid;
@@ -436,7 +436,7 @@ $date_range_display = get_date_range_display($date_from, $date_to);
 
         .meta-item{
             font-size:13px;
-            color:#333;
+            color:var(--text-color);
             line-height:1.6;
         }
 
@@ -448,24 +448,24 @@ $date_range_display = get_date_range_display($date_from, $date_to);
         }
 
         .summary-card{
-            background:#fafafa;
-            border:1px solid #e3e3e3;
+            background:var(--card-bg);
+            border:1px solid var(--border-color);
             border-radius:12px;
             padding:16px;
-        }
+}
+
+        .summary-value{
+            font-family:'Poppins', sans-serif;
+            font-size:24px;
+            font-weight:700;
+            color:var(--text-color);
+}
 
         .summary-label{
             font-size:12px;
             color:#777;
             margin-bottom:6px;
             font-weight:500;
-        }
-
-        .summary-value{
-            font-family:'Poppins', sans-serif;
-            font-size:24px;
-            font-weight:700;
-            color:#2f2f2f;
         }
 
         .report-list{
@@ -628,7 +628,8 @@ $date_range_display = get_date_range_display($date_from, $date_to);
         }
     </style>
 </head>
-<body>
+<?php include __DIR__ . '/../includes/auth.php'; ?>
+<body class="<?php echo themeClass(); ?>">
 
 <?php include '../includes/cdw_topbar.php'; ?>
 <?php include '../includes/cdw_sidebar.php'; ?>

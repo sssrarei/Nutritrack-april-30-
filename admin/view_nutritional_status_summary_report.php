@@ -159,7 +159,7 @@ if ($status === 'submitted') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nutritional Status Summary | NutriTrack</title>
-    <link rel="stylesheet" href="../assets/admin-style.css">
+    <link rel="stylesheet" href="../assets/admin/admin-style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
 
     <style>

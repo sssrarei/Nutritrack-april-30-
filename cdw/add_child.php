@@ -158,8 +158,8 @@ if(isset($_POST['save'])){
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Child | NutriTrack</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../assets/cdw-style.css">
-    <link rel="stylesheet" href="../assets/cdw-topbar-notification.css">
+    <link rel="stylesheet" href="../assets/cdw/cdw-style.css">
+    <link rel="stylesheet" href="../assets/cdw/cdw-topbar-notification.css">
     <style>
         *{
             box-sizing:border-box;

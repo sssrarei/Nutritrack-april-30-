@@ -318,11 +318,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_report'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Terminal Report | NutriTrack</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../assets/cdw-style.css">
-    <link rel="stylesheet" href="../assets/terminal_report.css">
-    <link rel="stylesheet" href="../assets/cdw-topbar-notification.css">
+    <link rel="stylesheet" href="../assets/cdw/cdw-style.css">
+    <link rel="stylesheet" href="../assets/cdw/terminal_report.css">
+    <link rel="stylesheet" href="../assets/cdw/cdw-topbar-notification.css">
 </head>
-<body>
+<?php include __DIR__ . '/../includes/auth.php'; ?>
+<body class="<?php echo themeClass(); ?>">
 
 <?php include '../includes/cdw_topbar.php'; ?>
 <?php include '../includes/cdw_sidebar.php'; ?>

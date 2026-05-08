@@ -3,6 +3,10 @@
 }
 
 .page-header{
+   background:#ffffff;
+    border:1px solid #dcdcdc;
+    border-radius:14px;
+    padding:22px 24px;
     margin-bottom:18px;
 }
 
@@ -11,26 +15,26 @@
     margin-bottom:10px;
     font-size:13px;
     font-weight:600;
-    color:#2E7D32;
+    color:var(--accent);
 }
 
 .page-title{
     font-family:'Poppins', sans-serif;
     font-size:28px;
     font-weight:700;
-    color:#2f2f2f;
+    color:var(--text-color);
     margin-bottom:6px;
 }
 
 .page-subtitle{
     font-size:14px;
-    color:#666;
+    color:var(--muted-text);
     line-height:1.5;
 }
 
 .cdc-banner{
-    background:#ffffff;
-    border:1px solid #dcdcdc;
+    background:var(--card-bg);
+    border:1px solid var(--border-color);
     border-radius:14px;
     padding:20px 24px;
     margin-bottom:18px;
@@ -41,19 +45,19 @@
     font-family:'Poppins', sans-serif;
     font-size:22px;
     font-weight:700;
-    color:#3a3a3a;
+    color:var(--text-color);
     text-transform:uppercase;
 }
 
 .cdc-banner-subtitle{
     margin-top:6px;
     font-size:13px;
-    color:#666;
+    color:var(--muted-text);
 }
 
 .content-card{
-    background:#ffffff;
-    border:1px solid #dcdcdc;
+    background:var(--card-bg);
+    border:1px solid var(--border-color);
     border-radius:14px;
     margin-bottom:18px;
     overflow:hidden;
@@ -61,12 +65,12 @@
 
 .card-header{
     padding:18px 22px;
-    border-bottom:1px solid #e5e7eb;
+    border-bottom:1px solid var(--border-light);
     font-family:'Poppins', sans-serif;
     font-size:18px;
     font-weight:700;
-    color:#2f2f2f;
-    background:#fff;
+    color:var(--text-color);
+    background:var(--card-bg);
 }
 
 .card-body{
@@ -75,7 +79,7 @@
 
 .card-note{
     font-size:13px;
-    color:#666;
+    color:var(--muted-text);
     margin-bottom:16px;
     line-height:1.5;
 }
@@ -89,15 +93,15 @@
 }
 
 .message.success{
-    background:#e8f5e9;
-    color:#2E7D32;
-    border:1px solid #c8e6c9;
+    background:var(--success-bg);
+    color:var(--success-text);
+    border:1px solid var(--success-border);
 }
 
 .message.error{
-    background:#ffebee;
-    color:#c62828;
-    border:1px solid #ef9a9a;
+    background:var(--danger-bg);
+    color:var(--danger-text);
+    border:1px solid var(--danger-border);
 }
 
 .search-form{
@@ -111,12 +115,13 @@
 .date-input{
     min-height:44px;
     padding:10px 14px;
-    border:1px solid #cfcfcf;
+    border:1px solid var(--input-border);
     border-radius:10px;
     font-size:14px;
     font-family:'Inter', sans-serif;
     outline:none;
-    background:#fff;
+    background:var(--input-bg);
+    color:var(--text-color);
 }
 
 .search-input{
@@ -133,7 +138,7 @@
     padding:0 18px;
     border:none;
     border-radius:10px;
-    background:#2E7D32;
+    background:var(--accent);
     color:#fff;
     font-size:14px;
     font-weight:600;
@@ -141,7 +146,7 @@
 }
 
 .search-btn:hover{
-    background:#256628;
+    opacity:0.9;
 }
 
 .form-group{
@@ -153,26 +158,27 @@
 .form-label{
     font-size:13px;
     font-weight:600;
-    color:#444;
+    color:var(--text-color);
 }
 
 .form-control{
     width:100%;
     min-height:44px;
     padding:10px 14px;
-    border:1px solid #cfcfcf;
+    border:1px solid var(--input-border);
     border-radius:10px;
     font-size:14px;
     font-family:'Inter', sans-serif;
     outline:none;
-    background:#fff;
+    background:var(--input-bg);
+    color:var(--text-color);
 }
 
 .form-control:focus,
 .table-input:focus,
 .table-select:focus,
 .search-input:focus{
-    border-color:#2E7D32;
+    border-color:var(--accent);
     box-shadow:0 0 0 3px rgba(46,125,50,0.10);
 }
 
@@ -181,9 +187,9 @@
     grid-template-columns: 2fr 2fr 2fr 120px;
     gap:14px;
     padding:16px;
-    border:1px solid #e3e3e3;
+    border:1px solid var(--border-light);
     border-radius:12px;
-    background:#fafafa;
+    background:var(--card-subtle);
     margin-bottom:14px;
 }
 
@@ -202,13 +208,14 @@
 }
 
 .remove-food-btn{
-    background:#e53935;
+    background:var(--danger-text);
+    border:1px solid var(--danger-border);
     color:#fff;
     padding:0 14px;
 }
 
 .remove-food-btn:hover{
-    background:#c62828;
+    opacity:0.9;
 }
 
 .food-actions{
@@ -216,35 +223,35 @@
 }
 
 .btn-secondary{
-    background:#edf5ee;
-    color:#2E7D32;
-    border:1px solid #cfe3d1;
+    background:var(--card-subtle);
+    color:var(--accent);
+    border:1px solid var(--border-color);
     padding:0 16px;
 }
 
 .btn-secondary:hover{
-    background:#e2efe4;
+    opacity:0.9;
 }
 
 .summary-box{
     margin-top:20px;
     padding:18px;
-    border:1px solid #d9e5db;
+    border:1px solid var(--border-color);
     border-radius:12px;
-    background:#f7fbf7;
+    background:var(--card-subtle);
 }
 
 .summary-title{
     font-family:'Poppins', sans-serif;
     font-size:16px;
     font-weight:700;
-    color:#2f2f2f;
+    color:var(--text-color);
     margin-bottom:10px;
 }
 
 .summary-preview{
     font-size:14px;
-    color:#444;
+    color:var(--text-color);
     line-height:1.7;
 }
 
@@ -264,10 +271,10 @@
 }
 
 .pupil-feed-card{
-    border:1px solid #e5e7eb;
+    border:1px solid var(--border-light);
     border-radius:12px;
     padding:18px;
-    background:#fafafa;
+    background:var(--card-subtle);
 }
 
 .pupil-feed-top{
@@ -282,13 +289,13 @@
     font-family:'Poppins', sans-serif;
     font-size:16px;
     font-weight:700;
-    color:#2f2f2f;
+    color:var(--text-color);
 }
 
 .pupil-feed-meta{
     margin-top:4px;
     font-size:13px;
-    color:#666;
+    color:var(--muted-text);
 }
 
 .attendance-wrap{
@@ -299,7 +306,7 @@
     display:block;
     font-size:12px;
     font-weight:700;
-    color:#555;
+    color:var(--text-color);
     margin-bottom:6px;
 }
 
@@ -310,7 +317,7 @@
 .meal-inputs-title{
     font-size:13px;
     font-weight:700;
-    color:#444;
+    color:var(--text-color);
     margin-bottom:10px;
 }
 
@@ -321,15 +328,15 @@
 }
 
 .meal-measurement-item{
-    background:#fff;
-    border:1px solid #e5e7eb;
+    background:var(--card-bg);
+    border:1px solid var(--border-light);
     border-radius:10px;
     padding:12px;
 }
 
 .no-meal-items{
     font-size:13px;
-    color:#777;
+    color:var(--muted-text);
     padding:10px 0;
 }
 
@@ -342,12 +349,13 @@
     width:100%;
     min-height:40px;
     padding:8px 10px;
-    border:1px solid #cfcfcf;
+    border:1px solid var(--input-border);
     border-radius:8px;
     font-size:14px;
     font-family:'Inter', sans-serif;
     outline:none;
-    background:#fff;
+    background:var(--input-bg);
+    color:var(--text-color);
 }
 
 .form-actions{
@@ -366,7 +374,7 @@
     padding:0 18px;
     border:none;
     border-radius:10px;
-    background:#2E7D32;
+    background:var(--accent);
     color:#fff;
     font-size:14px;
     font-weight:600;
@@ -374,12 +382,12 @@
 }
 
 .btn-save:hover{
-    background:#256628;
+    opacity:0.9;
 }
 
 .no-records{
     font-size:14px;
-    color:#666;
+    color:var(--muted-text);
     text-align:center;
     padding:18px 0;
 }
@@ -396,13 +404,13 @@
 }
 
 .status-badge.present{
-    background:#e8f5e9;
-    color:#2E7D32;
+    background:var(--success-bg);
+    color:var(--success-text);
 }
 
 .status-badge.absent{
-    background:#ffebee;
-    color:#c62828;
+    background:var(--danger-bg);
+    color:var(--danger-text);
 }
 
 .recent-records-list{
@@ -412,10 +420,10 @@
 }
 
 .recent-record-card{
-    border:1px solid #e5e7eb;
+    border:1px solid var(--border-light);
     border-radius:12px;
     padding:18px;
-    background:#fafafa;
+    background:var(--card-subtle);
 }
 
 .recent-record-top{
@@ -430,12 +438,12 @@
     font-family:'Poppins', sans-serif;
     font-size:16px;
     font-weight:700;
-    color:#2f2f2f;
+    color:var(--text-color);
 }
 
 .recent-record-date{
     font-size:13px;
-    color:#666;
+    color:var(--muted-text);
     margin-top:4px;
 }
 
@@ -446,14 +454,14 @@
 .recent-section-title{
     font-size:13px;
     font-weight:700;
-    color:#444;
+    color:var(--text-color);
     margin-bottom:8px;
 }
 
 .summary-list{
     margin:0;
     padding-left:18px;
-    color:#444;
+    color:var(--text-color);
     line-height:1.7;
     font-size:14px;
 }
@@ -465,7 +473,7 @@
 .no-summary,
 .remarks-text{
     font-size:14px;
-    color:#555;
+    color:var(--text-color);
     line-height:1.6;
 }
 
@@ -513,4 +521,75 @@
     .remove-food-btn{
         width:100%;
     }
+}
+
+/* =========================
+   UNIVERSAL DARK MODE FIX
+   (FEEDING LIST + ALL TABLES)
+========================= */
+
+body.dark-mode table{
+    background:var(--card-bg);
+    color:var(--text-color);
+    border-color:var(--border-color);
+}
+
+body.dark-mode table th{
+    background:var(--table-head);
+    color:var(--text-color);
+    border:1px solid var(--border-color);
+}
+
+body.dark-mode table td{
+    background:var(--card-bg);
+    color:var(--text-color);
+    border:1px solid var(--border-color);
+}
+
+/* INPUTS INSIDE TABLES */
+body.dark-mode table input,
+body.dark-mode table select,
+body.dark-mode table textarea{
+    background:var(--input-bg);
+    color:var(--text-color);
+    border:1px solid var(--input-border);
+}
+
+/* ROW HOVER */
+body.dark-mode table tr:hover{
+    background:var(--hover-bg);
+}
+
+/* =========================
+   FEEDING LIST SPECIFIC CLEAN FIX
+========================= */
+
+body.dark-mode .page-wrapper,
+body.dark-mode .content-card,
+body.dark-mode .cdc-banner,
+body.dark-mode .summary-box,
+body.dark-mode .pupil-feed-card,
+body.dark-mode .recent-record-card,
+body.dark-mode .food-row{
+    background:var(--card-bg);
+    border:1px solid var(--border-color);
+    color:var(--text-color);
+}
+
+/* MUTED TEXT FIX */
+body.dark-mode .page-subtitle,
+body.dark-mode .card-note,
+body.dark-mode .pupil-feed-meta,
+body.dark-mode .recent-record-date,
+body.dark-mode .no-records,
+body.dark-mode .no-summary{
+    color:var(--muted-text);
+}
+
+/* LABEL FIX */
+body.dark-mode .form-label,
+body.dark-mode .small-label,
+body.dark-mode .meal-inputs-title,
+body.dark-mode .recent-section-title{
+    color:var(--text-color);
 }

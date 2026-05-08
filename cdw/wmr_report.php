@@ -54,16 +54,16 @@ function fetch_baseline_rows($conn, $cdc_id, $date_from, $date_to){
             ar.wflh_status,
             CONCAT(u.first_name, ' ', u.last_name) AS recorded_by_name
         FROM anthropometric_records ar
-        INNER JOIN children c ON ar.child_id = c.child_id
-        INNER JOIN cdc cd ON c.cdc_id = cd.cdc_id
-        LEFT JOIN users u ON ar.recorded_by = u.user_id
-        INNER JOIN (
+            INNER JOIN children c ON ar.child_id = c.child_id
+            INNER JOIN cdc cd ON c.cdc_id = cd.cdc_id
+            LEFT JOIN users u ON ar.recorded_by = u.user_id
+            INNER JOIN (
             SELECT
                 ar2.child_id,
                 MIN(ar2.record_id) AS baseline_record_id
             FROM anthropometric_records ar2
             INNER JOIN children c2 ON ar2.child_id = c2.child_id
-            WHERE c2.cdc_id = ?
+            WHERE c2.cdc_id = ? AND c2.is_deleted = 0
               AND ar2.assessment_type = 'baseline'
     ";
 
@@ -285,8 +285,8 @@ if($data['error'] !== ''){
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Weight Monitoring Report | NutriTrack</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../assets/cdw-style.css">
-    <link rel="stylesheet" href="../assets/cdw-topbar-notification.css">
+    <link rel="stylesheet" href="../assets/cdw/cdw-style.css">
+    <link rel="stylesheet" href="../assets/cdw/cdw-topbar-notification.css">
     <style>
         *{
             box-sizing:border-box;
@@ -591,7 +591,7 @@ if($data['error'] !== ''){
         }
     </style>
 </head>
-<body>
+<<body class="<?php echo (isset($_SESSION['theme_mode']) && $_SESSION['theme_mode'] === 'dark') ? 'dark-mode' : ''; ?>">
 
 <?php include '../includes/cdw_topbar.php'; ?>
 <?php include '../includes/cdw_sidebar.php'; ?>

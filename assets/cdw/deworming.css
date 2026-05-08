@@ -5,13 +5,7 @@
     font-family: 'Inter', sans-serif;
 }
 
-.page-header h2 {
-    margin-bottom: 6px;
-    font-family: 'Poppins', sans-serif;
-    font-size: 24px;
-    font-weight: 700;
-    color: #1f2d3d;
-}
+
 
 .page-subtitle {
     margin-bottom: 15px;
@@ -110,7 +104,7 @@
 }
 
 .btn-save {
-    background: #27ae60;
+    background:var(--accent);
     color: #fff;
 }
 
@@ -191,7 +185,7 @@
 }
 
 .btn-add {
-    background: #2ecc71;
+    background:var(--accent);
     color: #fff;
 }
 
@@ -277,24 +271,144 @@
     color: #c0392b;
 }
 
-.sidebar.hide {
-    margin-left: -250px;
-    transition: 0.3s ease;
+/* =========================
+   DARK MODE FIX (DEWORMING PAGE)
+========================= */
+
+/* HEADERS */
+body.dark-mode .page-header h2,
+body.dark-mode .section-header h3 {
+    color: var(--text-color);
 }
 
-.content {
-    transition: 0.3s ease;
+body.dark-mode .page-subtitle {
+    color: var(--muted-text);
 }
 
-.content.full {
-    margin-left: 0 !important;
-    width: 100% !important;
+/* CARDS */
+body.dark-mode .deworm-form-card,
+body.dark-mode .deworm-table-card,
+body.dark-mode .recent-records-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
 }
 
-.sidebar-overlay {
-    display: none;
+/* LABELS */
+body.dark-mode .form-group label {
+    color: var(--text-color);
 }
 
-.sidebar-overlay.show {
-    display: block;
+/* INPUTS */
+body.dark-mode .form-group input,
+body.dark-mode .form-group select,
+body.dark-mode .table-input,
+body.dark-mode .table-select {
+    background: var(--input-bg);
+    color: var(--text-color);
+    border: 1px solid var(--input-border);
+}
+
+/* PLACEHOLDER */
+body.dark-mode ::placeholder {
+    color: var(--muted-text);
+}
+
+/* MAIN TABLE */
+body.dark-mode .deworm-table {
+    background: var(--card-bg);
+    color: var(--text-color);
+}
+
+body.dark-mode .deworm-table th {
+    background: var(--table-head);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+}
+
+body.dark-mode .deworm-table td {
+    background: var(--card-bg);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+}
+
+/* TABLE HOVER */
+body.dark-mode .deworm-table tr:hover {
+    background: var(--hover-bg);
+}
+
+/* CHILD NAME */
+body.dark-mode .child-name-cell {
+    color: var(--text-color);
+}
+
+/* EMPTY ROW */
+body.dark-mode .empty-row {
+    color: var(--muted-text);
+}
+
+/* NOT TAKEN ROW */
+body.dark-mode .row-not-taken {
+    background: var(--card-subtle);
+}
+
+body.dark-mode .row-not-taken .table-input {
+    background: var(--readonly-bg);
+    color: var(--muted-text);
+}
+
+/* RECENT TABLE */
+body.dark-mode .recent-deworm-table {
+    border: 1px solid var(--border-color);
+}
+
+body.dark-mode .recent-deworm-table th {
+    background: var(--table-head);
+    color: var(--text-color);
+    border-bottom: 1px solid var(--border-color);
+}
+
+body.dark-mode .recent-deworm-table td {
+    background: var(--card-bg);
+    color: var(--text-color);
+    border-bottom: 1px solid var(--border-light);
+}
+
+body.dark-mode .recent-deworm-table tbody tr:hover td {
+    background: var(--hover-bg);
+}
+
+/* STATUS BADGES */
+body.dark-mode .mini-status.taken {
+    background: var(--success-bg);
+    color: var(--success-text);
+}
+
+body.dark-mode .mini-status.not-taken {
+    background: var(--danger-bg);
+    color: var(--danger-text);
+}
+.page-header {
+    background: #ffffff;
+    border: 1px solid #dcdcdc;
+    border-radius: 14px;
+    padding: 22px 24px;
+    margin-bottom: 20px;
+}
+
+.page-header h1 {
+    margin: 8px 0 5px;
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.back-link {
+    display: inline-block;
+    margin-bottom: 8px;
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.page-wrapper {
+    padding: 20px 30px;
 }

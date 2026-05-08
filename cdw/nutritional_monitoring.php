@@ -255,12 +255,13 @@ function status_class($status) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nutritional Monitoring | NutriTrack</title>
-    <link rel="stylesheet" href="../assets/cdw-style.css">
-    <link rel="stylesheet" href="../assets/nutritional_monitoring.css">
-    <link rel="stylesheet" href="../assets/cdw-topbar-notification.css">
+    <link rel="stylesheet" href="../assets/cdw/cdw-style.css">
+    <link rel="stylesheet" href="../assets/cdw/nutritional_monitoring.css">
+    <link rel="stylesheet" href="../assets/cdw/cdw-topbar-notification.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body>
+include __DIR__ . '/../includes/auth.php';
+<body class="<?php echo themeClass(); ?>">
 
 <?php include '../includes/cdw_sidebar.php'; ?>
 

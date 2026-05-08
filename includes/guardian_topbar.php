@@ -12,7 +12,7 @@ if (session_status() === PHP_SESSION_NONE) {
             <span></span>
         </button>
 
-       <A href="dashboard.php"><img src="../NUTRITRACK-LOGO.svg" alt="NutriTrack Logo" class="topbar-logo">
+       <A href="dashboard.php"><img src="../NUTRITRACK-LOGO.png" alt="NutriTrack Logo" class="topbar-logo">
        </A> 
     </div>
 

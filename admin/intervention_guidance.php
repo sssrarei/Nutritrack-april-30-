@@ -195,11 +195,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $guidance_text = buildGuidanceText($rules);
             $saved_count = 0;
 
-            foreach ($children_to_save as $child) {
-                $child_id = isset($child['child_id']) ? (int)$child['child_id'] : 0;
-                $record_id = isset($child['record_id']) ? (int)$child['record_id'] : 0;
-                $submitted_report_id = isset($child['submitted_report_id']) ? (int)$child['submitted_report_id'] : null;
-                $original_status = '';
+           foreach ($children_to_save as $child) {
+            $child_id = isset($child['child_id']) ? (int)$child['child_id'] : 0;
+            $record_id = isset($child['record_id']) ? (int)$child['record_id'] : 0;
+
+            $wmr_record_id = isset($child['submitted_report_id']) 
+                ? (int)$child['submitted_report_id'] 
+                : $record_id;
+
+            $submitted_report_id = isset($child['submitted_report_id']) ? (int)$child['submitted_report_id'] : null;
+            $original_status = '';
 
                 if ($selected_category === 'Moderately Wasted') {
                     if (isset($child['wflh_status']) && $child['wflh_status'] === 'Moderately Wasted') {
@@ -234,11 +239,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
 
                 $check_sql = "SELECT guidance_id
-                              FROM intervention_guidance
-                              WHERE child_id = ? AND record_id = ? AND intervention_category = ?
-                              LIMIT 1";
+                FROM intervention_guidance
+                WHERE child_id = ?
+                AND intervention_category = ?
+                LIMIT 1";
                 $check_stmt = $conn->prepare($check_sql);
-                $check_stmt->bind_param("iis", $child_id, $record_id, $selected_category);
+                $check_stmt->bind_param("is", $child_id, $selected_category);
                 $check_stmt->execute();
                 $check_result = $check_stmt->get_result();
 
@@ -247,24 +253,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $guidance_id = (int)$existing['guidance_id'];
 
                     $update_sql = "UPDATE intervention_guidance
-                                   SET submitted_report_id = ?,
-                                       original_status = ?,
-                                       guidance_text = ?,
-                                       optional_note = ?,
-                                       is_at_risk = ?,
-                                       needs_counseling = ?,
-                                       needs_referral = ?,
-                                       reviewed_by = ?,
-                                       is_reviewed = 1,
-                                       sent_to_guardian = 1,
-                                       sent_at = NOW(),
-                                       status_note = ?,
-                                       updated_at = CURRENT_TIMESTAMP
-                                   WHERE guidance_id = ?";
+                    SET submitted_report_id = ?,
+                        wmr_record_id = ?,
+                        original_status = ?,
+                        guidance_text = ?,
+                        optional_note = ?,
+                        is_at_risk = ?,
+                        needs_counseling = ?,
+                        needs_referral = ?,
+                        reviewed_by = ?,
+                        is_reviewed = 1,
+                        sent_to_guardian = 1,
+                        sent_at = NOW(),
+                        resend_count = resend_count + 1,
+                        status_note = ?,
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE guidance_id = ?";
                     $update_stmt = $conn->prepare($update_sql);
                     $update_stmt->bind_param(
-                        "isssiiiisi",
+                        "iisssiiiisi",
                         $submitted_report_id,
+                        $wmr_record_id,
                         $original_status,
                         $guidance_text,
                         $optional_note,
@@ -415,8 +424,8 @@ if ($show_preview && !empty($selected_category)) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Intervention Guidance</title>
-    <link rel="stylesheet" href="../assets/admin-style.css">
-    <link rel="stylesheet" href="../assets/intervention_guidance.css">
+    <link rel="stylesheet" href="../assets/admin/admin-style.css">
+    <link rel="stylesheet" href="../assets/admin/intervention_guidance.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 <body class="<?php echo (isset($_SESSION['theme_mode']) && $_SESSION['theme_mode'] === 'dark') ? 'dark-mode' : ''; ?>">
@@ -576,6 +585,12 @@ if ($show_preview && !empty($selected_category)) {
                     </ul>
                 </div>
 
+                <div class="guidance-disclaimer">
+                    <p>
+                        This is intended for healthy Filipino children aged 0–71 months. Children with specific health conditions should be brought to a registered nutritionist-dietitian or any healthcare provider for consultation regarding their energy and nutrient needs.
+                    </p>
+                </div>
+
                 <form method="POST" class="preview-form">
                     <input type="hidden" name="cdc_id" value="<?php echo htmlspecialchars($selected_cdc); ?>">
                     <input type="hidden" name="category" value="<?php echo htmlspecialchars($selected_category); ?>">
@@ -595,48 +610,7 @@ if ($show_preview && !empty($selected_category)) {
     <?php endif; ?>
 </div>
 
-<script>
-const menuToggle = document.getElementById('menuToggle');
-const sidebar = document.getElementById('sidebar');
-const sidebarOverlay = document.getElementById('sidebarOverlay');
-const mainContent = document.getElementById('mainContent');
 
-function handleDesktopToggle() {
-    if (!sidebar || !mainContent) return;
-    sidebar.classList.toggle('hidden');
-    mainContent.classList.toggle('full');
-}
-
-function handleMobileToggle() {
-    if (!sidebar || !sidebarOverlay) return;
-    sidebar.classList.toggle('show');
-    sidebarOverlay.classList.toggle('show');
-}
-
-if (menuToggle && sidebar) {
-    menuToggle.addEventListener('click', function () {
-        if (window.innerWidth <= 991) {
-            handleMobileToggle();
-        } else {
-            handleDesktopToggle();
-        }
-    });
-}
-
-if (sidebarOverlay) {
-    sidebarOverlay.addEventListener('click', function () {
-        sidebar.classList.remove('show');
-        sidebarOverlay.classList.remove('show');
-    });
-}
-
-window.addEventListener('resize', function () {
-    if (window.innerWidth > 991 && sidebar && sidebarOverlay) {
-        sidebar.classList.remove('show');
-        sidebarOverlay.classList.remove('show');
-    }
-});
-</script>
-
+<script src="../assets/admin/sidebar.js"></script>
 </body>
 </html>

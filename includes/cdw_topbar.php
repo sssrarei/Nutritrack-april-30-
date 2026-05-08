@@ -59,7 +59,7 @@ if ($user_id > 0) {
         </button>
 
         <a href="dashboard.php" class="topbar-logo-link">
-            <img src="../NUTRITRACK-LOGO.svg" alt="NutriTrack Logo" class="topbar-logo">
+            <img src="../NUTRITRACK-LOGO.png" alt="NutriTrack Logo" class="topbar-logo">
         </a>
     </div>
 

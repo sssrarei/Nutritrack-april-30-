@@ -1,0 +1,74 @@
+
+body.dark-mode{
+    background:#121212;
+    color:#e5e5e5;
+}
+
+/* CONTAINERS */
+body.dark-mode .content-card,
+body.dark-mode .card-body,
+body.dark-mode .cdc-banner,
+body.dark-mode .pupil-feed-card,
+body.dark-mode .food-row,
+body.dark-mode .summary-box,
+body.dark-mode .recent-record-card,
+body.dark-mode .meal-measurement-item{
+    background:#1e1e1e;
+    border-color:#333;
+}
+
+/* HEADERS */
+body.dark-mode .card-header,
+body.dark-mode .page-title,
+body.dark-mode .summary-title{
+    color:#fff;
+}
+
+/* TEXT */
+body.dark-mode p,
+body.dark-mode span,
+body.dark-mode div,
+body.dark-mode label{
+    color:#e5e5e5;
+}
+
+/* INPUTS */
+body.dark-mode input,
+body.dark-mode select,
+body.dark-mode textarea,
+body.dark-mode .form-control,
+body.dark-mode .table-input,
+body.dark-mode .table-select{
+    background:#2a2a2a;
+    color:#fff;
+    border:1px solid #444;
+}
+
+/* PLACEHOLDER */
+body.dark-mode input::placeholder{
+    color:#aaa;
+}
+
+/* BADGES */
+body.dark-mode .status-badge.present{
+    background:#14532d;
+    color:#bbf7d0;
+}
+
+body.dark-mode .status-badge.absent{
+    background:#7f1d1d;
+    color:#fecaca;
+}
+
+/* BUTTONS */
+body.dark-mode .btn-save,
+body.dark-mode .search-btn{
+    background:#2E7D32;
+    color:#fff;
+}
+
+body.dark-mode .btn-secondary{
+    background:#2a2a2a;
+    border:1px solid #444;
+    color:#e5e5e5;
+}

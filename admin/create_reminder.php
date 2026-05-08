@@ -140,7 +140,7 @@ $cdc_list = $conn->query("
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create Reminder</title>
-    <link rel="stylesheet" href="../assets/admin-style.css">
+    <link rel="stylesheet" href="../assets/admin/admin-style.css">
     <style>
         body {
             background: #f4f6f9;
@@ -445,48 +445,7 @@ $cdc_list = $conn->query("
     </div>
 </div>
 
-<script>
-const menuToggle = document.getElementById('menuToggle');
-const sidebar = document.getElementById('sidebar');
-const sidebarOverlay = document.getElementById('sidebarOverlay');
-const mainContent = document.getElementById('mainContent');
 
-function handleDesktopToggle() {
-    if (!sidebar || !mainContent) return;
-    sidebar.classList.toggle('hidden');
-    mainContent.classList.toggle('full');
-}
-
-function handleMobileToggle() {
-    if (!sidebar || !sidebarOverlay) return;
-    sidebar.classList.toggle('show');
-    sidebarOverlay.classList.toggle('show');
-}
-
-if (menuToggle && sidebar) {
-    menuToggle.addEventListener('click', function () {
-        if (window.innerWidth <= 991) {
-            handleMobileToggle();
-        } else {
-            handleDesktopToggle();
-        }
-    });
-}
-
-if (sidebarOverlay) {
-    sidebarOverlay.addEventListener('click', function () {
-        sidebar.classList.remove('show');
-        sidebarOverlay.classList.remove('show');
-    });
-}
-
-window.addEventListener('resize', function () {
-    if (window.innerWidth > 991 && sidebar && sidebarOverlay) {
-        sidebar.classList.remove('show');
-        sidebarOverlay.classList.remove('show');
-    }
-});
-</script>
-
+<script src="../assets/admin/sidebar.js"></script>
 </body>
 </html>

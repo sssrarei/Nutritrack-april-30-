@@ -341,6 +341,18 @@ body.dark-mode .btn-secondary:hover{
     color:#111827;
 }
 
+.guidance-disclaimer {
+    margin-top: 12px;
+    padding: 10px 12px;
+    background: #fff3cd;
+    border-left: 4px solid #ffc107;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #856404;
+    line-height: 1.5;
+    margin-bottom: 20px;
+}
+
 .guidance-section{
     margin-bottom:20px;
 }
@@ -449,3 +461,4 @@ body.dark-mode .note-group textarea{
     font-weight: 700;
     margin-left: 6px;
 }
+

@@ -98,8 +98,8 @@ if ($summary_result && $summary_result->num_rows > 0) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CDC Management</title>
-    <link rel="stylesheet" href="../assets/admin-style.css">
-    <link rel="stylesheet" href="../assets/add_cdc.css">
+    <link rel="stylesheet" href="../assets/admin/admin-style.css">
+    <link rel="stylesheet" href="../assets/admin/add_cdc.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 <body class="<?php echo (isset($_SESSION['theme_mode']) && $_SESSION['theme_mode'] === 'dark') ? 'dark-mode' : ''; ?>">
@@ -148,8 +148,8 @@ if ($summary_result && $summary_result->num_rows > 0) {
         <button type="button" class="btn btn-primary" onclick="openAddCdcForm()">Add CDC</button>
     </div>
 
-    <div class="form-card <?php echo ($error != '' || $success != '') ? 'show' : ''; ?>" id="addCdcForm">
-        <div class="card-header">
+<div class="form-card" id="addCdcForm">
+            <div class="card-header">
             <h2>Add CDC</h2>
             <p>Enter the CDC information below.</p>
         </div>
@@ -234,58 +234,16 @@ if ($summary_result && $summary_result->num_rows > 0) {
     </div>
 </div>
 
+<script src="../assets/admin/sidebar.js"></script>
+
 <script>
-function openAddCdcForm() {
-    const form = document.getElementById('addCdcForm');
-    form.classList.add('show');
-    form.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-function closeAddCdcForm() {
-    document.getElementById('addCdcForm').classList.remove('show');
-}
-
-const menuToggle = document.getElementById('menuToggle');
-const sidebar = document.getElementById('sidebar');
-const sidebarOverlay = document.getElementById('sidebarOverlay');
-const mainContent = document.getElementById('mainContent');
-
-function handleDesktopToggle() {
-    if (!sidebar || !mainContent) return;
-    sidebar.classList.toggle('hidden');
-    mainContent.classList.toggle('full');
-}
-
-function handleMobileToggle() {
-    if (!sidebar || !sidebarOverlay) return;
-    sidebar.classList.toggle('show');
-    sidebarOverlay.classList.toggle('show');
-}
-
-if (menuToggle && sidebar) {
-    menuToggle.addEventListener('click', function () {
-        if (window.innerWidth <= 991) {
-            handleMobileToggle();
-        } else {
-            handleDesktopToggle();
-        }
-    });
-}
-
-if (sidebarOverlay) {
-    sidebarOverlay.addEventListener('click', function () {
-        sidebar.classList.remove('show');
-        sidebarOverlay.classList.remove('show');
-    });
-}
-
-window.addEventListener('resize', function () {
-    if (window.innerWidth > 991 && sidebar && sidebarOverlay) {
-        sidebar.classList.remove('show');
-        sidebarOverlay.classList.remove('show');
+    function openAddCdcForm() {
+        document.getElementById('addCdcForm').classList.add('show');
     }
-});
-</script>
 
+    function closeAddCdcForm() {
+        document.getElementById('addCdcForm').classList.remove('show');
+    }
+</script>
 </body>
 </html>
