@@ -14,6 +14,11 @@ if(!isset($_SESSION['active_cdc_id'])){
 $cdc_id = (int) $_SESSION['active_cdc_id'];
 $user_id = (int) $_SESSION['user_id'];
 $date_from = isset($_GET['date_from']) ? trim($_GET['date_from']) : '';
+$assessment_type = isset($_GET['assessment_type']) ? trim($_GET['assessment_type']) : 'baseline';
+
+if($assessment_type !== 'baseline' && $assessment_type !== 'midline'){
+    $assessment_type = 'baseline';
+}
 $date_to = isset($_GET['date_to']) ? trim($_GET['date_to']) : '';
 
 $error = "";
@@ -24,15 +29,17 @@ $prepared_by = trim($_SESSION['first_name'] . ' ' . $_SESSION['last_name']);
 function assessment_type_label($assessment_type){
     $assessment_type = strtolower(trim((string)$assessment_type));
 
-    switch($assessment_type){
-        case 'baseline':
-            return 'Baseline';
-        default:
-            return 'N/A';
-    }
+   switch($assessment_type){
+    case 'baseline':
+        return 'Baseline';
+    case 'midline':
+        return 'Midline';
+    default:
+        return 'N/A';
+}
 }
 
-function fetch_baseline_rows($conn, $cdc_id, $date_from, $date_to){
+function fetch_wmr_rows($conn, $cdc_id, $date_from, $date_to, $assessment_type){
     $rows = [];
 
     $sql = "
@@ -49,6 +56,9 @@ function fetch_baseline_rows($conn, $cdc_id, $date_from, $date_to){
             ar.height,
             ar.weight,
             ar.muac,
+            ar.edema_grade,
+            ar.muac_status,
+            ar.edema_status,
             ar.wfa_status,
             ar.hfa_status,
             ar.wflh_status,
@@ -64,11 +74,11 @@ function fetch_baseline_rows($conn, $cdc_id, $date_from, $date_to){
             FROM anthropometric_records ar2
             INNER JOIN children c2 ON ar2.child_id = c2.child_id
             WHERE c2.cdc_id = ? AND c2.is_deleted = 0
-              AND ar2.assessment_type = 'baseline'
+              AND ar2.assessment_type = ?
     ";
 
-    $types = "i";
-    $params = [$cdc_id];
+    $types = "is";
+    $params = [$cdc_id, $assessment_type];
 
     if($date_from !== ''){
         $sql .= " AND DATE(ar2.date_recorded) >= ?";
@@ -123,8 +133,13 @@ function fetch_baseline_rows($conn, $cdc_id, $date_from, $date_to){
 if(isset($_POST['submit_report'])){
     $date_from_post = isset($_POST['date_from']) ? trim($_POST['date_from']) : '';
     $date_to_post = isset($_POST['date_to']) ? trim($_POST['date_to']) : '';
+    $assessment_type = isset($_POST['assessment_type']) ? trim($_POST['assessment_type']) : 'baseline';
 
-    $baseline_data = fetch_baseline_rows($conn, $cdc_id, $date_from_post, $date_to_post);
+if($assessment_type !== 'baseline' && $assessment_type !== 'midline'){
+    $assessment_type = 'baseline';
+}
+
+    $baseline_data = fetch_wmr_rows($conn, $cdc_id, $date_from_post, $date_to_post, $assessment_type);
 
     if($baseline_data['error'] !== ''){
         $error = $baseline_data['error'];
@@ -144,11 +159,11 @@ if(isset($_POST['submit_report'])){
                     FROM anthropometric_records ar2
                     INNER JOIN children c2 ON ar2.child_id = c2.child_id
                     WHERE c2.cdc_id = ?
-                      AND ar2.assessment_type = 'baseline'
+                      AND ar2.assessment_type = ?
             ";
 
-            $submit_types = "i";
-            $submit_params = [$cdc_id];
+            $submit_types = "is";
+            $submit_params = [$cdc_id, $assessment_type];
 
             if($date_from_post !== ''){
                 $submit_sql .= " AND DATE(ar2.date_recorded) >= ?";
@@ -200,6 +215,9 @@ if(isset($_POST['submit_report'])){
                     'height' => $row['height'],
                     'weight' => $row['weight'],
                     'muac' => $row['muac'],
+                    'edema_status' => $row['edema_status'],
+                    'edema_grade' => $row['edema_grade'],
+                    'muac_status' => $row['muac_status'],
                     'wfa_status' => $row['wfa_status'],
                     'hfa_status' => $row['hfa_status'],
                     'wflh_status' => $row['wflh_status'],
@@ -209,7 +227,7 @@ if(isset($_POST['submit_report'])){
 
             $report_payload = json_encode([
                 'report_type' => 'wmr',
-                'assessment_scope' => 'baseline_only',
+                'assessment_scope' => $assessment_type . '_only',
                 'cdc_id' => $cdc_id,
                 'cdc_name' => $_SESSION['active_cdc_name'],
                 'prepared_by' => $prepared_by,
@@ -256,7 +274,7 @@ if(isset($_POST['submit_report'])){
             $insert_stmt->close();
 
             mysqli_commit($conn);
-            $success = "Baseline WMR submitted successfully. Selected baseline records are now official and visible to CSWD.";
+            $success = ucfirst($assessment_type) . " WMR submitted successfully. Selected records are now official and visible to CSWD.";
         } catch(Exception $e){
             mysqli_rollback($conn);
             $error = $e->getMessage();
@@ -270,7 +288,7 @@ if(isset($_POST['submit_report'])){
 /* =========================================================
    FETCH BASELINE WMR DATA
 ========================================================= */
-$data = fetch_baseline_rows($conn, $cdc_id, $date_from, $date_to);
+$data = fetch_wmr_rows($conn, $cdc_id, $date_from, $date_to, $assessment_type);
 
 if($data['error'] !== ''){
     $error = $data['error'];
@@ -355,7 +373,7 @@ if($data['error'] !== ''){
 
         .filter-grid{
             display:grid;
-            grid-template-columns:repeat(2, 1fr);
+            grid-template-columns:repeat(3, 1fr);
             gap:14px;
             margin-bottom:18px;
         }
@@ -478,7 +496,7 @@ if($data['error'] !== ''){
 
         .wmr-table{
             width:100%;
-            min-width:1250px;
+            min-width:1500px;
             border-collapse:collapse;
         }
 
@@ -591,7 +609,7 @@ if($data['error'] !== ''){
         }
     </style>
 </head>
-<<body class="<?php echo (isset($_SESSION['theme_mode']) && $_SESSION['theme_mode'] === 'dark') ? 'dark-mode' : ''; ?>">
+<body class="<?php echo (isset($_SESSION['theme_mode']) && $_SESSION['theme_mode'] === 'dark') ? 'dark-mode' : ''; ?>">
 
 <?php include '../includes/cdw_topbar.php'; ?>
 <?php include '../includes/cdw_sidebar.php'; ?>
@@ -601,7 +619,7 @@ if($data['error'] !== ''){
         <a href="dashboard.php" class="back-link">← Back to Dashboard</a>
         <h1 class="page-title">Weight Monitoring Report</h1>
         <div class="page-subtitle">
-            Baseline Records Only
+            <?php echo ucfirst($assessment_type); ?> Records Only
         </div>
     </div>
 
@@ -616,6 +634,13 @@ if($data['error'] !== ''){
 
         <form method="GET">
             <div class="filter-grid">
+                <div class="form-group">
+                    <label>Assessment Type</label>
+                    <select name="assessment_type" class="form-control">
+                        <option value="baseline" <?php echo $assessment_type === 'baseline' ? 'selected' : ''; ?>>Baseline</option>
+                        <option value="midline" <?php echo $assessment_type === 'midline' ? 'selected' : ''; ?>>Midline</option>
+                    </select>
+                </div>
                 <div class="form-group">
                     <label>Date From</label>
                     <input type="date" name="date_from" class="form-control" value="<?php echo htmlspecialchars($date_from); ?>">
@@ -636,6 +661,7 @@ if($data['error'] !== ''){
         <form method="POST">
             <input type="hidden" name="date_from" value="<?php echo htmlspecialchars($date_from); ?>">
             <input type="hidden" name="date_to" value="<?php echo htmlspecialchars($date_to); ?>">
+            <input type="hidden" name="assessment_type" value="<?php echo htmlspecialchars($assessment_type); ?>">
 
             <div class="button-group" style="margin-top:-6px;">
                 <button type="submit" name="submit_report" class="btn btn-submit">Submit Report</button>
@@ -677,6 +703,9 @@ if($data['error'] !== ''){
                             <th>Height (cm)</th>
                             <th>Weight (kg)</th>
                             <th>MUAC (cm)</th>
+                            <th>Edema</th>
+                            <th>Grade</th>
+                            <th>MUAC Status</th>
                             <th>WFA</th>
                             <th>HFA</th>
                             <th>WFL/H</th>
@@ -706,6 +735,9 @@ if($data['error'] !== ''){
                                 <td><?php echo htmlspecialchars(number_format((float)$row['height'], 2)); ?></td>
                                 <td><?php echo htmlspecialchars(number_format((float)$row['weight'], 2)); ?></td>
                                 <td><?php echo htmlspecialchars(number_format((float)$row['muac'], 2)); ?></td>
+                                <td><?php echo htmlspecialchars($row['edema_status'] ?: '--'); ?></td>
+                                <td><?php echo htmlspecialchars($row['edema_grade'] ?: '--'); ?></td>
+                                <td><span class="status-text"><?php echo htmlspecialchars($row['muac_status'] ?: '--'); ?></span></td>
                                 <td><span class="status-text"><?php echo htmlspecialchars($row['wfa_status']); ?></span></td>
                                 <td><span class="status-text"><?php echo htmlspecialchars($row['hfa_status']); ?></span></td>
                                 <td><span class="status-text"><?php echo htmlspecialchars($row['wflh_status']); ?></span></td>
@@ -716,7 +748,7 @@ if($data['error'] !== ''){
                 </table>
             </div>
         <?php } else { ?>
-            <p class="no-data">No baseline records found for this CDC.</p>
+            <p class="no-data">No <?php echo htmlspecialchars(ucfirst($assessment_type)); ?> records found for this CDC.</p>
         <?php } ?>
     </div>
 </div>

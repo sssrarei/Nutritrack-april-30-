@@ -126,7 +126,7 @@ function renderFileOrText($value){
 }
 
 $submission_table_exists = false;
-$table_check = $conn->query("SHOW TABLES LIKE 'guardian_health_submissions'");
+$table_check = $conn->query("SHOW TABLES LIKE 'child_health_information_requests'");
 if($table_check && $table_check->num_rows > 0){
     $submission_table_exists = true;
 }
@@ -155,7 +155,7 @@ if($submission_table_exists){
 
 if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_health_info'])){
     if(!$submission_table_exists){
-        $message = "Submission table not found. Please create guardian_health_submissions first.";
+        $message = "Submission table not found. Please create child_health_information_requests first.";
         $message_type = 'error';
     } elseif($pending_submission){
         $message = "You already have a pending health information submission waiting for CDW review.";
@@ -206,17 +206,17 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_health_info']))
             }
 
             $insert_sql = "
-                INSERT INTO guardian_health_submissions (
-                    child_id,
-                    guardian_user_id,
-                    guardian_name,
-                    vaccination_card_file_path,
-                    allergies,
-                    comorbidities,
-                    medical_history_file_path,
-                    status,
-                    submitted_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, 'Pending', NOW())
+                INSERT INTO child_health_information_requests (
+                child_id,
+                guardian_id,
+                vaccination_card_file_path,
+                allergies,
+                comorbidities,
+                medical_history,
+                medical_history_file_path,
+                status,
+                submitted_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, 'Pending', NOW())
             ";
 
             $insert_stmt = $conn->prepare($insert_sql);
@@ -225,16 +225,16 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_health_info']))
                 $message = "Prepare error: " . $conn->error;
                 $message_type = 'error';
             } else {
-                $insert_stmt->bind_param(
-                    "iisssss",
-                    $child_id,
-                    $guardian_user_id,
-                    $guardian_name,
-                    $vaccination_path,
-                    $allergies,
-                    $comorbidities,
-                    $medical_history_value
-                );
+               $insert_stmt->bind_param(
+                "iisssss",
+                $child_id,
+                $guardian_user_id,
+                $vaccination_path,
+                $allergies,
+                $comorbidities,
+                $medical_history_text,
+                $medical_file_path
+            );
 
                 if($insert_stmt->execute()){
                     $message = "Health information successfully submitted to CDW.";
@@ -242,11 +242,11 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_health_info']))
 
                     $refresh_sql = "
                         SELECT *
-                        FROM guardian_health_submissions
+                        FROM child_health_information_requests
                         WHERE child_id = ?
-                          AND guardian_user_id = ?
-                          AND status = 'Pending'
-                        ORDER BY submitted_at DESC, submission_id DESC
+                        AND guardian_id = ?
+                        AND status = 'Pending'
+                        ORDER BY submitted_at DESC, request_id DESC
                         LIMIT 1
                     ";
                     $refresh_stmt = $conn->prepare($refresh_sql);

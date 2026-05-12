@@ -446,3 +446,58 @@ body.dark-mode td{
     border-color:#334155;
     color:#e2e8f0;
 }
+
+.measurements-table th,
+.measurements-table td {
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: break-word;
+}
+
+/* NEW COLUMNS (EDema + Grade + MUAC Status) */
+.col-edema {
+    width: 120px;
+    text-align: center;
+}
+
+.col-edema-grade {
+    width: 100px;
+    text-align: center;
+}
+
+.col-muac-status {
+    width: 180px;
+    text-align: center;
+}
+
+.measurements-table{
+    table-layout: fixed;
+}
+
+.measurements-table .col-muac-status{
+    width: 210px;
+}
+
+.measurements-table .col-wfa,
+.measurements-table .col-hfa,
+.measurements-table .col-wflh{
+    width: 150px;
+}
+
+.status-cell .status-badge,
+.status-badge{
+    min-width: 0;
+    width: 100%;
+    max-width: 170px;
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: break-word;
+    line-height: 1.35;
+}
+
+/* YELLOW: MUAC moderate, HFA tall, underweight, wasted, stunted, overweight */
+.status-warning{
+    background:#fff3e0;
+    color:#70702c;
+    border:1px solid #f3c27a;
+}

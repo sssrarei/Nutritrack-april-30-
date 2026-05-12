@@ -26,8 +26,12 @@ $form_date_recorded = '';
 $form_height = '';
 $form_weight = '';
 $form_muac = '';
+
 $form_place_of_measurement = '';
 $form_assessment_type = 'monthly_followup';
+
+$form_edema_status = '';
+$form_edema_grade = '';
 
 /* =========================================================
    HELPERS
@@ -71,12 +75,34 @@ function status_badge($status){
     }
 
     $normalized = strtolower(trim($status));
+    $class = 'status-alert';
 
-    if($normalized === 'normal'){
-        return '<span class="status-badge status-normal">' . htmlspecialchars($status) . '</span>';
+    if(
+        $normalized === 'normal' ||
+        strpos($normalized, 'green zone') !== false
+    ){
+        $class = 'status-normal';
+    }
+    elseif(
+        strpos($normalized, 'moderate') !== false ||
+        strpos($normalized, 'yellow zone') !== false ||
+        $normalized === 'underweight' ||
+        $normalized === 'wasted' ||
+        $normalized === 'stunted' ||
+        $normalized === 'tall' ||
+        $normalized === 'overweight'
+    ){
+        $class = 'status-warning';
+    }
+    elseif(
+        strpos($normalized, 'severe') !== false ||
+        strpos($normalized, 'red zone') !== false ||
+        $normalized === 'obese'
+    ){
+        $class = 'status-alert';
     }
 
-    return '<span class="status-badge status-alert">' . htmlspecialchars($status) . '</span>';
+    return '<span class="status-badge ' . $class . '">' . htmlspecialchars($status) . '</span>';
 }
 
 function assessment_type_label($assessment_type){
@@ -112,14 +138,17 @@ if(!$view_only && isset($_POST['save_record'])){
     $height = trim($_POST['height']);
     $weight = trim($_POST['weight']);
     $muac = trim($_POST['muac']);
-    $place_of_measurement = trim($_POST['place_of_measurement']);
+    $edema_status = trim($_POST['edema_status']);
+    $edema_grade = $_POST['edema_grade'] ?? null;
+    $edema_grade = ($edema_status === 'Present') ? $edema_grade : null;
     $assessment_type = isset($_POST['assessment_type']) ? trim($_POST['assessment_type']) : '';
 
     $form_date_recorded = $date_recorded;
     $form_height = $height;
     $form_weight = $weight;
     $form_muac = $muac;
-    $form_place_of_measurement = $place_of_measurement;
+    $form_edema_status = $edema_status;
+    $form_edema_grade = $edema_grade;
     $form_assessment_type = $assessment_type;
 
     $child_stmt = $conn->prepare("
@@ -136,15 +165,31 @@ if(!$view_only && isset($_POST['save_record'])){
 
     if($child_result->num_rows == 0){
         $error = "Invalid child selected.";
-    } elseif(empty($date_recorded) || $height === '' || $weight === '' || $muac === '' || $place_of_measurement === '' || empty($assessment_type)){
+    }
+    elseif(
+        empty($date_recorded) ||
+        $height === '' ||
+        $weight === '' ||
+        $muac === '' ||
+        empty($edema_status) ||
+        empty($assessment_type)
+    ){
         $error = "Please complete all required fields.";
-    } elseif(!is_valid_assessment_type($assessment_type)){
+    }
+    elseif($edema_status === 'Present' && empty($edema_grade)){
+        $error = "Please select edema grade.";
+    }
+    elseif(!is_valid_assessment_type($assessment_type)){
         $error = "Invalid assessment type selected.";
-    } elseif(!is_numeric($height) || !is_numeric($weight) || !is_numeric($muac)){
+    }
+    elseif(!is_numeric($height) || !is_numeric($weight) || !is_numeric($muac)){
         $error = "Height, weight, and MUAC must be numeric values.";
-    } elseif((float)$height <= 0 || (float)$weight <= 0 || (float)$muac <= 0){
+    }
+    elseif((float)$height <= 0 || (float)$weight <= 0 || (float)$muac <= 0){
         $error = "Height, weight, and MUAC must be greater than zero.";
-    } else {
+    }
+    else {
+
         $child = $child_result->fetch_assoc();
         $sex = trim($child['sex']);
         $birthdate = $child['birthdate'];
@@ -153,10 +198,22 @@ if(!$view_only && isset($_POST['save_record'])){
 
         if($age_months === null){
             $error = "Unable to compute age in months.";
-        } else {
+        }
+        else {
+
             $height_val = (float)$height;
             $weight_val = (float)$weight;
             $muac_val = (float)$muac;
+
+            if($muac_val < 11.5){
+                $muac_status = 'Severe Acute Malnutrition';
+            }
+            elseif($muac_val >= 11.5 && $muac_val < 12.5){
+                $muac_status = 'Moderate Acute Malnutrition';
+            }
+            else{
+                $muac_status = 'Normal';
+            }
 
             /* =========================================================
                ASSESSMENT TYPE VALIDATION RULES
@@ -221,29 +278,43 @@ if(!$view_only && isset($_POST['save_record'])){
                     if($check_edit_result->num_rows == 0){
                         $error = "Invalid record selected for editing.";
                     } else {
-                        $update_stmt = $conn->prepare("
-                            UPDATE anthropometric_records
-                            SET height = ?, weight = ?, muac = ?, date_recorded = ?, age_months = ?, place_of_measurement = ?, wfa_status = ?, hfa_status = ?, wflh_status = ?, assessment_type = ?, recorded_by = ?
-                            WHERE record_id = ? AND child_id = ?
-                        ");
+                       $update_stmt = $conn->prepare("
+    UPDATE anthropometric_records
+    SET 
+        height = ?, 
+        weight = ?, 
+        muac = ?, 
+        edema_status = ?, 
+        edema_grade = ?,
+        muac_status = ?, 
+        date_recorded = ?, 
+        age_months = ?, 
+        wfa_status = ?, 
+        hfa_status = ?, 
+        wflh_status = ?, 
+        assessment_type = ?, 
+        recorded_by = ?
+    WHERE record_id = ? AND child_id = ?
+");
 
-                        $update_stmt->bind_param(
-                            "dddsisssssiii",
-                            $height_val,
-                            $weight_val,
-                            $muac_val,
-                            $date_recorded,
-                            $age_months,
-                            $place_of_measurement,
-                            $wfa_status,
-                            $hfa_status,
-                            $wflh_status,
-                            $assessment_type,
-                            $user_id,
-                            $edit_record_id,
-                            $child_id_post
-                        );
-
+                      $update_stmt->bind_param(
+    "dddssssissssiii",
+    $height_val,
+    $weight_val,
+    $muac_val,
+    $edema_status,
+    $edema_grade,
+    $muac_status,
+    $date_recorded,
+    $age_months,
+    $wfa_status,
+    $hfa_status,
+    $wflh_status,
+    $assessment_type,
+    $user_id,
+    $edit_record_id,
+    $child_id_post
+);
                         if($update_stmt->execute()){
                             $success = "Anthropometric record updated successfully.";
                             $child_id = $child_id_post;
@@ -252,7 +323,9 @@ if(!$view_only && isset($_POST['save_record'])){
                             $form_height = '';
                             $form_weight = '';
                             $form_muac = '';
-                            $form_place_of_measurement = '';
+                            $form_edema_status = '';
+                            $form_edema_grade = '';
+                            $form_muac_status = '';
                             $form_assessment_type = 'monthly_followup';
                         } else {
                             $error = "Error updating record: " . $conn->error;
@@ -263,19 +336,21 @@ if(!$view_only && isset($_POST['save_record'])){
                 } else {
                     $insert_stmt = $conn->prepare("
                         INSERT INTO anthropometric_records
-                        (child_id, height, weight, muac, date_recorded, age_months, place_of_measurement, assessment_type, wfa_status, hfa_status, wflh_status, recorded_by)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        (child_id, height, weight, muac, edema_status, edema_grade, muac_status, date_recorded, age_months, assessment_type, wfa_status, hfa_status, wflh_status, recorded_by)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ");
 
                     $insert_stmt->bind_param(
-                        "idddsisssssi",
+                        "idddssssissssi",
                         $child_id_post,
                         $height_val,
                         $weight_val,
                         $muac_val,
+                        $edema_status,
+                        $edema_grade,
+                        $muac_status,
                         $date_recorded,
                         $age_months,
-                        $place_of_measurement,
                         $assessment_type,
                         $wfa_status,
                         $hfa_status,
@@ -290,7 +365,9 @@ if(!$view_only && isset($_POST['save_record'])){
                         $form_height = '';
                         $form_weight = '';
                         $form_muac = '';
-                        $form_place_of_measurement = '';
+                        $form_edema_status = '';
+                        $form_edema_grade = '';
+                        $form_muac_status = '';
                         $form_assessment_type = 'monthly_followup';
                     } else {
                         $error = "Error saving record: " . $conn->error;
@@ -376,7 +453,9 @@ if($child_id > 0){
             $form_height = $edit_data['height'];
             $form_weight = $edit_data['weight'];
             $form_muac = $edit_data['muac'];
-            $form_place_of_measurement = $edit_data['place_of_measurement'];
+            $form_edema_status = $edit_data['edema_status'];
+            $form_edema_grade = $edit_data['edema_grade'];
+            $form_muac_status = $edit_data['muac_status'];
             $form_assessment_type = !empty($edit_data['assessment_type']) ? $edit_data['assessment_type'] : 'monthly_followup';
         } else {
             $edit_id = 0;
@@ -687,8 +766,24 @@ if($child_id > 0){
                             <label class="form-label">MUAC (cm):</label>
                             <input type="number" step="0.01" name="muac" class="form-control" value="<?php echo htmlspecialchars($form_muac); ?>" required>
 
-                            <label class="form-label">Place of Measurement:</label>
-                            <input type="text" name="place_of_measurement" class="form-control" value="<?php echo htmlspecialchars($form_place_of_measurement); ?>" required>
+                            <label class="form-label">Presence of Edema:</label>
+                        <select name="edema_status" id="edema_status" class="form-control" required>
+                            <option value="">Select</option>
+                            <option value="Absent" <?php echo ($form_edema_status === 'Absent') ? 'selected' : ''; ?>>Absent</option>
+                            <option value="Present" <?php echo ($form_edema_status === 'Present') ? 'selected' : ''; ?>>Present</option>
+                        </select>
+
+                        <label class="form-label" id="edema_grade_label" style="display:none;">
+                            Edema Grade:
+                        </label>
+
+                        <select name="edema_grade" id="edema_grade" class="form-control" style="display:none;">
+                            <option value="">Select Grade</option>
+                            <option value="+1">+1</option>
+                            <option value="+2">+2</option>
+                            <option value="+3">+3</option>
+                        </select>
+
 
                             <label class="form-label">Assessment Type:</label>
                             <select name="assessment_type" class="form-control" required>
@@ -728,6 +823,9 @@ if($child_id > 0){
                                         <th class="col-height center-cell">Height<br>(cm)</th>
                                         <th class="col-weight center-cell">Weight<br>(kg)</th>
                                         <th class="col-muac center-cell">MUAC<br>(cm)</th>
+                                        <th class="col-edema center-cell">Edema</th>
+                                        <th class="col-edema-grade center-cell">Grade</th>
+                                        <th class="col-muac-status center-cell">MUAC Status</th>
                                         <th class="col-wfa center-cell">WFA</th>
                                         <th class="col-hfa center-cell">HFA</th>
                                         <th class="col-wflh center-cell">WFL/H</th>
@@ -766,6 +864,8 @@ if($child_id > 0){
                                             <td class="center-cell unit-cell"><?php echo htmlspecialchars(number_format((float)$record['height'], 2)); ?><br>cm</td>
                                             <td class="center-cell unit-cell"><?php echo htmlspecialchars(number_format((float)$record['weight'], 2)); ?><br>kg</td>
                                             <td class="center-cell unit-cell"><?php echo htmlspecialchars(number_format((float)$record['muac'], 2)); ?><br>cm</td>
+                                            <td class="center-cell"><?php echo htmlspecialchars($record['edema_status'] ?? '--'); ?></td>
+                                            <td class="center-cell"><?php echo htmlspecialchars($record['edema_grade'] ?? '--'); ?></td>                                           <td class="status-cell"><?php echo status_badge($record['muac_status'] ?? '--'); ?></td>
                                             <td class="status-cell"><?php echo status_badge($record['wfa_status'] ?? '--'); ?></td>
                                             <td class="status-cell"><?php echo status_badge($record['hfa_status'] ?? '--'); ?></td>
                                             <td class="status-cell"><?php echo status_badge($record['wflh_status'] ?? '--'); ?></td>
@@ -805,6 +905,29 @@ function toggleSidebar() {
         mainContent.classList.toggle('full');
     }
 }
+
+document.addEventListener('DOMContentLoaded', function(){
+
+    const edemaStatus = document.getElementById('edema_status');
+    const edemaGrade = document.getElementById('edema_grade');
+    const edemaGradeLabel = document.getElementById('edema_grade_label');
+
+    function toggleEdema(){
+
+        if(edemaStatus.value === 'Present'){
+            edemaGrade.style.display = 'block';
+            edemaGradeLabel.style.display = 'block';
+        } else {
+            edemaGrade.style.display = 'none';
+            edemaGradeLabel.style.display = 'none';
+            edemaGrade.value = '';
+        }
+    }
+
+    edemaStatus.addEventListener('change', toggleEdema);
+    toggleEdema();
+});
+
 </script>
 
 </body>

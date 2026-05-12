@@ -32,28 +32,40 @@ $sql = "
         cdc.cdc_name,
         cdc.address AS cdc_address,
 
-        guardians.first_name AS guardian_first_name,
+        COALESCE(guardians.first_name, guardian_user.first_name) AS guardian_first_name,
         guardians.middle_name AS guardian_middle_name,
-        guardians.last_name AS guardian_last_name,
+        COALESCE(guardians.last_name, guardian_user.last_name) AS guardian_last_name,
         guardians.relationship_to_child,
-        guardians.contact_number AS guardian_contact_number,
-        guardians.email AS guardian_email,
-        guardians.address AS guardian_address,
+        COALESCE(guardians.contact_number, guardian_user.contact_number) AS guardian_contact_number,
+        COALESCE(guardians.email, guardian_user.email) AS guardian_email,
+        COALESCE(guardians.address, guardian_user.address) AS guardian_address,
 
         child_health_information.vaccination_card_file_path,
         child_health_information.allergies,
         child_health_information.comorbidities,
         child_health_information.medical_history_file_path
 
-    FROM children
-    INNER JOIN cdc ON children.cdc_id = cdc.cdc_id
-    LEFT JOIN guardians ON children.child_id = guardians.child_id
-    LEFT JOIN child_health_information ON children.child_id = child_health_information.child_id
-    WHERE children.child_id = ?
-    AND children.cdc_id = ?
-    AND children.is_deleted = 0
-    LIMIT 1
-";
+            FROM children
+            INNER JOIN cdc 
+                ON children.cdc_id = cdc.cdc_id
+
+            LEFT JOIN parent_child_links 
+                ON children.child_id = parent_child_links.child_id
+
+            LEFT JOIN users AS guardian_user
+                ON parent_child_links.parent_id = guardian_user.user_id
+
+            LEFT JOIN guardians 
+                ON guardian_user.user_id = guardians.user_id
+
+            LEFT JOIN child_health_information 
+                ON children.child_id = child_health_information.child_id
+
+            WHERE children.child_id = ?
+            AND children.cdc_id = ?
+            AND children.is_deleted = 0
+            LIMIT 1
+            ";
 
 $stmt = $conn->prepare($sql);
 
@@ -161,7 +173,7 @@ $guardian_submission = null;
 $guardian_submission_message = '';
 $guardian_submission_feature_enabled = false;
 
-$table_check_sql = "SHOW TABLES LIKE 'guardian_health_submissions'";
+$table_check_sql = "SHOW TABLES LIKE 'child_health_information_requests'";
 $table_check_result = $conn->query($table_check_sql);
 
 if ($table_check_result && $table_check_result->num_rows > 0) {
@@ -169,14 +181,14 @@ if ($table_check_result && $table_check_result->num_rows > 0) {
 }
 
 if ($guardian_submission_feature_enabled && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardian_submission_action'])) {
-    $submission_id = isset($_POST['submission_id']) ? (int)$_POST['submission_id'] : 0;
+    $request_id = isset($_POST['request_id']) ? (int)$_POST['request_id'] : 0;
     $action = trim($_POST['guardian_submission_action']);
     $reviewed_by = (int)$_SESSION['user_id'];
 
     $submission_sql = "
         SELECT *
-        FROM guardian_health_submissions
-        WHERE submission_id = ?
+        FROM child_health_information_requests
+        WHERE request_id = ?
           AND child_id = ?
           AND status = 'Pending'
         LIMIT 1
@@ -185,7 +197,7 @@ if ($guardian_submission_feature_enabled && $_SERVER['REQUEST_METHOD'] === 'POST
     $submission_stmt = $conn->prepare($submission_sql);
 
     if ($submission_stmt) {
-        $submission_stmt->bind_param("ii", $submission_id, $child_id);
+        $submission_stmt->bind_param("ii", $request_id, $child_id);
         $submission_stmt->execute();
         $submission_result = $submission_stmt->get_result();
         $submission_row = $submission_result->fetch_assoc();
@@ -253,16 +265,16 @@ if ($guardian_submission_feature_enabled && $_SERVER['REQUEST_METHOD'] === 'POST
                     }
 
                     $approve_sql = "
-                        UPDATE guardian_health_submissions
-                        SET status = 'Applied',
+                        UPDATE child_health_information_requests
+                        SET status = 'Approved',
                             reviewed_by = ?,
                             reviewed_at = NOW()
-                        WHERE submission_id = ?
+                        WHERE request_id = ?
                     ";
                     $approve_stmt = $conn->prepare($approve_sql);
 
                     if ($approve_stmt) {
-                        $approve_stmt->bind_param("ii", $reviewed_by, $submission_id);
+                        $approve_stmt->bind_param("ii", $reviewed_by, $request_id);
                         $approve_stmt->execute();
                         $approve_stmt->close();
                     }
@@ -274,16 +286,16 @@ if ($guardian_submission_feature_enabled && $_SERVER['REQUEST_METHOD'] === 'POST
 
             if ($action === 'reject') {
                 $reject_sql = "
-                    UPDATE guardian_health_submissions
+                    UPDATE child_health_information_requests
                     SET status = 'Rejected',
                         reviewed_by = ?,
                         reviewed_at = NOW()
-                    WHERE submission_id = ?
+                    WHERE request_id = ?
                 ";
                 $reject_stmt = $conn->prepare($reject_sql);
 
                 if ($reject_stmt) {
-                    $reject_stmt->bind_param("ii", $reviewed_by, $submission_id);
+                    $reject_stmt->bind_param("ii", $reviewed_by, $request_id);
                     $reject_stmt->execute();
                     $reject_stmt->close();
                 }
@@ -305,13 +317,13 @@ if ($guardian_submission_feature_enabled && isset($_GET['guardian_submission']))
 
 if ($guardian_submission_feature_enabled) {
     $guardian_submission_sql = "
-        SELECT *
-        FROM guardian_health_submissions
-        WHERE child_id = ?
-          AND status = 'Pending'
-        ORDER BY submitted_at DESC, submission_id DESC
-        LIMIT 1
-    ";
+    SELECT *
+    FROM child_health_information_requests
+    WHERE child_id = ?
+      AND status = 'Pending'
+    ORDER BY submitted_at DESC, request_id DESC
+    LIMIT 1
+";
 
     $guardian_submission_stmt = $conn->prepare($guardian_submission_sql);
 
@@ -517,7 +529,7 @@ if ($guardian_submission_feature_enabled) {
                     <div class="info-list">
                         <div class="info-row">
                             <span class="info-label">Guardian Name</span>
-                            <div class="info-value"><?php echo htmlspecialchars($guardian_submission['guardian_name']); ?></div>
+                            <div class="info-value"><?php echo htmlspecialchars($guardian_full_name); ?></div>
                         </div>
 
                         <div class="info-row">
@@ -561,18 +573,18 @@ if ($guardian_submission_feature_enabled) {
 
                     <div class="guardian-submission-actions">
                         <form method="POST" class="guardian-submission-form">
-                            <input type="hidden" name="submission_id" value="<?php echo (int)$guardian_submission['submission_id']; ?>">
-                            <button type="submit" name="guardian_submission_action" value="approve" class="btn-guardian-approve">
-                                Approve / Apply
-                            </button>
-                        </form>
+            <input type="hidden" name="request_id" value="<?php echo (int)$guardian_submission['request_id']; ?>">
+            <button type="submit" name="guardian_submission_action" value="approve" class="btn-guardian-approve">
+                Approve / Apply
+            </button>
+        </form>
 
-                        <form method="POST" class="guardian-submission-form">
-                            <input type="hidden" name="submission_id" value="<?php echo (int)$guardian_submission['submission_id']; ?>">
-                            <button type="submit" name="guardian_submission_action" value="reject" class="btn-guardian-reject">
-                                Reject
-                            </button>
-                        </form>
+        <form method="POST" class="guardian-submission-form">
+            <input type="hidden" name="request_id" value="<?php echo (int)$guardian_submission['request_id']; ?>">
+            <button type="submit" name="guardian_submission_action" value="reject" class="btn-guardian-reject">
+                Reject
+            </button>
+        </form>
                     </div>
                 </div>
             <?php } ?>

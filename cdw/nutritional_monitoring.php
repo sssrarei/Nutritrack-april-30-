@@ -64,7 +64,7 @@ if ($result_child && mysqli_num_rows($result_child) > 0) {
 $latest_record = null;
 
 $latest_sql = "
-    SELECT record_id, child_id, height, weight, muac, wfa_status, hfa_status, wflh_status, date_recorded
+    SELECT record_id, child_id, height, weight, muac, edema_status, edema_grade, muac_status, wfa_status, hfa_status, wflh_status, date_recorded
     FROM anthropometric_records
     WHERE child_id = ?
     ORDER BY date_recorded DESC, record_id DESC
@@ -89,7 +89,7 @@ $graph_weights = [];
 $graph_heights = [];
 
 $history_sql = "
-    SELECT record_id, child_id, height, weight, muac, wfa_status, hfa_status, wflh_status, date_recorded
+    SELECT record_id, child_id, height, weight, muac, edema_status, edema_grade, muac_status, wfa_status, hfa_status, wflh_status, date_recorded
     FROM anthropometric_records
     WHERE child_id = ?
     ORDER BY date_recorded ASC, record_id ASC
@@ -235,16 +235,36 @@ function safe_value($value) {
 function status_class($status) {
     $status = strtolower(trim((string)$status));
 
-    if ($status == 'normal') return 'status-normal';
-    if ($status == 'underweight') return 'status-underweight';
-    if ($status == 'severely underweight') return 'status-severe';
-    if ($status == 'overweight') return 'status-overweight';
-    if ($status == 'obese') return 'status-obese';
-    if ($status == 'stunted') return 'status-stunted';
-    if ($status == 'severely stunted') return 'status-severe';
-    if ($status == 'moderately wasted') return 'status-wasted';
-    if ($status == 'wasted') return 'status-wasted';
-    if ($status == 'severely wasted') return 'status-severe';
+    if ($status === '' || $status === '--') {
+        return 'status-default';
+    }
+
+    if (
+        $status === 'normal' ||
+        strpos($status, 'green zone') !== false
+    ) {
+        return 'status-normal';
+    }
+
+    if (
+        strpos($status, 'moderate') !== false ||
+        strpos($status, 'yellow zone') !== false ||
+        $status === 'underweight' ||
+        $status === 'wasted' ||
+        $status === 'stunted' ||
+        $status === 'tall' ||
+        $status === 'overweight'
+    ) {
+        return 'status-warning';
+    }
+
+    if (
+        strpos($status, 'severe') !== false ||
+        strpos($status, 'red zone') !== false ||
+        $status === 'obese'
+    ) {
+        return 'status-severe';
+    }
 
     return 'status-default';
 }
@@ -349,6 +369,10 @@ include __DIR__ . '/../includes/auth.php';
                         <span class="status-title">WFL/H</span>
                         <span class="status-value"><?php echo safe_value($latest_record['wflh_status']); ?></span>
                     </div>
+                                        <div class="status-card <?php echo status_class($latest_record['muac_status']); ?>">
+                        <span class="status-title">MUAC Status</span>
+                        <span class="status-value"><?php echo safe_value($latest_record['muac_status']); ?></span>
+                    </div>
                 </div>
             <?php } else { ?>
                 <div class="empty-state">No anthropometric record found for this child.</div>
@@ -370,6 +394,9 @@ include __DIR__ . '/../includes/auth.php';
                                 <th>Height (cm)</th>
                                 <th>Weight (kg)</th>
                                 <th>MUAC (cm)</th>
+                                <th>Edema</th>
+                                <th>Grade</th>
+                                <th>MUAC Status</th>      
                                 <th>WFA</th>
                                 <th>HFA</th>
                                 <th>WFL/H</th>
@@ -383,6 +410,9 @@ include __DIR__ . '/../includes/auth.php';
                                     <td><?php echo safe_value($row['height']); ?></td>
                                     <td><?php echo safe_value($row['weight']); ?></td>
                                     <td><?php echo safe_value($row['muac']); ?></td>
+                                    <td><?php echo safe_value($row['edema_status']); ?></td>
+                                    <td><?php echo safe_value($row['edema_grade']); ?></td>
+                                    <td><?php echo safe_value($row['muac_status']); ?></td>
                                     <td><?php echo safe_value($row['wfa_status']); ?></td>
                                     <td><?php echo safe_value($row['hfa_status']); ?></td>
                                     <td><?php echo safe_value($row['wflh_status']); ?></td>

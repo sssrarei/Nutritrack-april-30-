@@ -514,6 +514,9 @@ if ($status === 'submitted') {
                                 <th>Height</th>
                                 <th>Weight</th>
                                 <th>MUAC</th>
+                                <th>Edema</th>
+                                <th>Grade</th>
+                                <th>MUAC Status</th>
                                 <th>WFA</th>
                                 <th>HFA</th>
                                 <th>WFL/H</th>
@@ -532,6 +535,11 @@ if ($status === 'submitted') {
                                     <td><?php echo h(safe_value($row['height'] ?? '')); ?></td>
                                     <td><?php echo h(safe_value($row['weight'] ?? '')); ?></td>
                                     <td><?php echo h(safe_value($row['muac'] ?? '')); ?></td>
+                                    <td><?php echo h(safe_value($row['edema_status'] ?? '', '--')); ?></td>
+                                    <td><?php echo h(safe_value($row['edema_grade'] ?? '', '--')); ?></td>
+                                    <td class="<?php echo h(status_class($row['muac_status'] ?? '')); ?>">
+                                        <?php echo h(safe_value($row['muac_status'] ?? '', '--')); ?>
+                                    </td>
                                     <td class="<?php echo h(status_class($row['wfa_status'] ?? '')); ?>">
                                         <?php echo h(safe_value($row['wfa_status'] ?? '')); ?>
                                     </td>

@@ -196,6 +196,7 @@ if ($report['report_type'] !== 'individual_child') {
         <title>View Submitted Report | NutriTrack</title>
         <link rel="stylesheet" href="../assets/admin/admin-style.css">
         <link rel="stylesheet" href="../assets/admin/view_submitted_report.css">
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
     </head>
     <body>
@@ -555,8 +556,8 @@ mysqli_stmt_close($stmt_deworm);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>View Submitted Report | NutriTrack</title>
-    <link rel="stylesheet" href="../assets/admin-style.css">
-    <link rel="stylesheet" href="../assets/view_submitted_report.css">
+    <link rel="stylesheet" href="/nutritrack/assets/admin/admin-style.css">
+    <link rel="stylesheet" href="/nutritrack/assets/admin/view_submitted_report.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -1090,7 +1091,8 @@ window.viewSubmittedReportChartData = {
 </script>
 <?php endif; ?>
 
-<script src="../assets/view_submitted_report.js"></script>
+<script src="/nutritrack/assets/admin/view_submitted_report.js"></script>
+
 
 </body>
 </html>
