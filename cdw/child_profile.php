@@ -161,7 +161,15 @@ function renderFileOrText($value){
             $html .= '<div>' . nl2br(htmlspecialchars($text_only)) . '</div>';
         }
 
-        $html .= '<a href="' . $safe_file_path . '" target="_blank" class="file-link">View Attached File</a>';
+        $link_text = 'View Attached File';
+
+if (stripos($value, 'vacc') !== false) {
+    $link_text = 'View Vaccination Card';
+} elseif (stripos($value, 'med') !== false) {
+    $link_text = 'View Medical History File';
+}
+
+$html .= '<a href="' . $safe_file_path . '" target="_blank" class="file-link">' . $link_text . '</a>';
 
         return $html;
     }

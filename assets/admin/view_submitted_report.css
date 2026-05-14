@@ -254,7 +254,7 @@ html {
 
 .terminal-summary-grid {
     display: grid;
-    grid-template-columns: repeat(3, minmax(180px, 1fr));
+    grid-template-columns: repeat(4, minmax(160px, 1fr));
     gap: 14px;
     margin-top: 18px;
 }
@@ -441,4 +441,19 @@ html {
     .chart-holder {
         height: 280px;
     }
+}
+
+.blue-save-btn {
+    background: #163b68;
+    color: #ffffff;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.blue-save-btn:hover {
+    background: #217dbb;
 }

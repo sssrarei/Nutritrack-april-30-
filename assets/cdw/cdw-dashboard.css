@@ -322,3 +322,146 @@ body.dark-mode .chart-title{
 
     
 }
+
+
+.event-dashboard-list{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+}
+
+.event-dashboard-item{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:14px;
+    background:#f8fafc;
+    border:1px solid #e5e7eb;
+    border-radius:14px;
+    padding:14px 16px;
+}
+
+.event-dashboard-item h4{
+    font-size:15px;
+    font-weight:700;
+    color:#1F4E79;
+    margin-bottom:6px;
+}
+
+.event-dashboard-item p{
+    font-size:13px;
+    color:#4b5563;
+    line-height:1.5;
+}
+
+.event-dashboard-status{
+    padding:7px 12px;
+    border-radius:999px;
+    background:#e8f5e9;
+    color:#2e7d32;
+    font-size:12px;
+    font-weight:700;
+    white-space:nowrap;
+}
+
+@media(max-width:768px){
+    .event-dashboard-item{
+        flex-direction:column;
+    }
+}
+
+.events-dashboard-card{
+    padding:34px 36px;
+}
+
+.events-dashboard-header{
+    text-align:center;
+    margin-bottom:28px;
+}
+
+.events-dashboard-header h2{
+    font-family:'Poppins', sans-serif;
+    font-size:20px;
+    font-weight:700;
+    color: #2e7d32;
+}
+
+.cdw-event-list{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+}
+
+.cdw-event-item{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:18px;
+    background:#f8fafc;
+    border:1px solid #dbe7dd;
+    border-radius:18px;
+    padding:22px 26px;
+}
+
+.cdw-event-grid{
+    display:grid;
+    grid-template-columns:repeat(2, 1fr);
+    gap:16px 22px;
+    flex:1;
+}
+
+.cdw-event-field{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+}
+
+.cdw-event-field.full{
+    grid-column:1 / -1;
+}
+
+.cdw-label{
+    font-size:11px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+    color:#6b7280;
+}
+
+.cdw-value{
+    font-size:15px;
+    color:#334155;
+    line-height:1.5;
+}
+
+.cdw-value.title{
+    font-family:'Poppins', sans-serif;
+    font-size:20px;
+    font-weight:700;
+    color:#2e7d32;
+}
+
+.cdw-event-status{
+    background:#dcfce7;
+    color:#2e7d32;
+    padding:9px 18px;
+    border-radius:999px;
+    font-size:14px;
+    font-weight:700;
+    white-space:nowrap;
+}
+
+@media(max-width:768px){
+    .events-dashboard-card{
+        padding:24px 18px;
+    }
+
+    .cdw-event-item{
+        flex-direction:column;
+        padding:18px;
+    }
+
+    .events-dashboard-header h2{
+        font-size:18px;
+    }
+}

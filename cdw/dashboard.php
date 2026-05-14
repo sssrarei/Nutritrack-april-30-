@@ -272,6 +272,23 @@ foreach ($nutritional_graph_data as $item) {
     $nutri_chart_counts[] = (int)$item['count'];
 }
 
+$today = date('Y-m-d');
+
+$event_sql = "
+    SELECT title, event_type, event_date, start_time, end_time, location, status
+    FROM events
+    WHERE is_deleted = 0
+    AND status = 'Upcoming'
+    AND event_date >= ?
+    ORDER BY event_date ASC, start_time ASC
+    LIMIT 5
+";
+
+$event_stmt = $conn->prepare($event_sql);
+$event_stmt->bind_param("s", $today);
+$event_stmt->execute();
+$upcoming_events = $event_stmt->get_result();
+
 $is_dark_mode = ($theme_mode === 'dark');
 ?>
 <!DOCTYPE html>
@@ -416,6 +433,90 @@ $is_dark_mode = ($theme_mode === 'dark');
             </div>
         </div>
     </div>
+
+<div class="page-card events-dashboard-card">
+
+    <div class="events-dashboard-header">
+        <h2>Upcoming Community Events</h2>
+    </div>
+
+    <?php if ($upcoming_events && $upcoming_events->num_rows > 0): ?>
+        <div class="cdw-event-list">
+
+            <?php while ($event = $upcoming_events->fetch_assoc()): ?>
+
+                <div class="cdw-event-item">
+
+    <div class="cdw-event-grid">
+
+        <div class="cdw-event-field full">
+            <span class="cdw-label">Title</span>
+            <div class="cdw-value title">
+                <?php echo htmlspecialchars($event['title']); ?>
+            </div>
+        </div>
+
+        <div class="cdw-event-field">
+            <span class="cdw-label">Type</span>
+            <div class="cdw-value">
+                <?php echo htmlspecialchars($event['event_type']); ?>
+            </div>
+        </div>
+
+        <div class="cdw-event-field">
+            <span class="cdw-label">Date</span>
+            <div class="cdw-value">
+                <?php echo date("F d, Y", strtotime($event['event_date'])); ?>
+            </div>
+        </div>
+
+        <div class="cdw-event-field">
+            <span class="cdw-label">Time</span>
+            <div class="cdw-value">
+               <?php
+if(!empty($event['start_time']) && !empty($event['end_time'])){
+    echo date("h:i A", strtotime($event['start_time'])) .
+    " - " .
+    date("h:i A", strtotime($event['end_time']));
+}
+elseif(!empty($event['start_time'])){
+    echo date("h:i A", strtotime($event['start_time']));
+}
+else{
+    echo "Not set";
+}
+?>
+
+            </div>
+        </div>
+
+        <div class="cdw-event-field">
+            <span class="cdw-label">Location</span>
+            <div class="cdw-value">
+                <?php echo !empty($event['location']) ? htmlspecialchars($event['location']) : 'Not specified'; ?>
+            </div>
+        </div>
+
+    </div>
+
+    <span class="cdw-event-status">
+        <?php echo htmlspecialchars($event['status']); ?>
+    </span>
+
+</div>
+            <?php endwhile; ?>
+
+        </div>
+    <?php else: ?>
+
+        <div class="empty-box">
+            No upcoming community events.
+        </div>
+
+    <?php endif; ?>
+
+</div>
+
 
     <div class="chart-section">
         <div class="chart-box">

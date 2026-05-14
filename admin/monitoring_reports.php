@@ -14,8 +14,11 @@ function h($value)
 
 $date_from = isset($_GET['date_from']) ? trim($_GET['date_from']) : '';
 $date_to = isset($_GET['date_to']) ? trim($_GET['date_to']) : '';
-$cdc_id = isset($_GET['cdc_id']) ? trim($_GET['cdc_id']) : '';
 $report_type = isset($_GET['report_type']) ? trim($_GET['report_type']) : '';
+$cdc_id = isset($_GET['cdc_id']) ? trim($_GET['cdc_id']) : '';
+$page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+$limit = 5;
+$offset = ($page - 1) * $limit;
 
 $cdc_list = [];
 $cdc_sql = "SELECT cdc_id, cdc_name, barangay FROM cdc ORDER BY cdc_name ASC";
@@ -34,6 +37,62 @@ $report_type_options = [
     'nutritional_status_summary' => 'Nutritional Status Summary',
     'terminal_report' => 'Terminal Report'
 ];
+
+$count_sql = "
+    SELECT COUNT(*) AS total
+    FROM submitted_reports sr
+    INNER JOIN cdc c ON sr.cdc_id = c.cdc_id
+    INNER JOIN users u ON sr.submitted_by = u.user_id
+    WHERE 1=1
+";
+
+$count_types = '';
+$count_params = [];
+
+if ($cdc_id !== '') {
+    $count_sql .= " AND sr.cdc_id = ? ";
+    $count_types .= 'i';
+    $count_params[] = (int)$cdc_id;
+}
+
+if ($report_type !== '') {
+    $count_sql .= " AND sr.report_type = ? ";
+    $count_types .= 's';
+    $count_params[] = $report_type;
+}
+
+if ($date_from !== '') {
+    $count_sql .= " AND DATE(sr.submitted_at) >= ? ";
+    $count_types .= 's';
+    $count_params[] = $date_from;
+}
+
+if ($date_to !== '') {
+    $count_sql .= " AND DATE(sr.submitted_at) <= ? ";
+    $count_types .= 's';
+    $count_params[] = $date_to;
+}
+
+$total_records = 0;
+
+$count_stmt = mysqli_prepare($conn, $count_sql);
+if ($count_stmt) {
+    if (!empty($count_params)) {
+        mysqli_stmt_bind_param($count_stmt, $count_types, ...$count_params);
+    }
+
+    mysqli_stmt_execute($count_stmt);
+    $count_result = mysqli_stmt_get_result($count_stmt);
+
+    if ($count_result) {
+        $count_row = mysqli_fetch_assoc($count_result);
+        $total_records = (int)$count_row['total'];
+    }
+
+    mysqli_stmt_close($count_stmt);
+}
+
+$total_pages = max(1, ceil($total_records / $limit));
 
 $sql = "
     SELECT
@@ -88,7 +147,10 @@ if ($date_to !== '') {
     $params[] = $date_to;
 }
 
-$sql .= " ORDER BY sr.submitted_at DESC, sr.submitted_report_id DESC ";
+$sql .= " ORDER BY sr.submitted_at DESC, sr.submitted_report_id DESC LIMIT ? OFFSET ? ";
+$types .= 'ii';
+$params[] = $limit;
+$params[] = $offset;
 
 $stmt = mysqli_prepare($conn, $sql);
 $report_rows = [];
@@ -465,19 +527,25 @@ if ($stmt) {
             </form>
         </div>
 
-        <div class="table-card">
+        <div class="table-card" id="reportsTable">
             <div class="table-header">
                 <div>
                     <h2>Submitted Reports</h2>
                     <p>Only submitted report snapshots are shown here.</p>
                 </div>
                 <div>
-                    <span class="record-count"><?php echo count($report_rows); ?> record(s)</span>
+                    <span class="record-count">
+    Showing <?php echo count($report_rows); ?> of <?php echo $total_records; ?> record(s)
+</span>
                 </div>
+
+                
             </div>
 
             <?php if ($error_message !== ''): ?>
                 <div class="error-message"><?php echo h($error_message); ?></div>
+
+                
             <?php endif; ?>
 
             <?php if (empty($report_rows) && $error_message === ''): ?>
@@ -565,6 +633,34 @@ if ($stmt) {
                         </tbody>
                     </table>
                 </div>
+<?php if ($total_pages > 1): ?>
+    <div class="pagination-wrap">
+        <?php
+            $query_params = $_GET;
+        ?>
+
+        <?php if ($page > 1): ?>
+            <?php
+                $query_params['page'] = $page - 1;
+                $prev_link = 'monitoring_reports.php?' . http_build_query($query_params) . '#reportsTable';
+            ?>
+            <a href="<?php echo h($prev_link); ?>" class="pagination-btn">Previous</a>
+        <?php endif; ?>
+
+        <span class="pagination-info">
+            Page <?php echo $page; ?> of <?php echo $total_pages; ?>
+        </span>
+
+        <?php if ($page < $total_pages): ?>
+            <?php
+                $query_params['page'] = $page + 1;
+                $next_link = 'monitoring_reports.php?' . http_build_query($query_params) . '#reportsTable';
+            ?>
+            <a href="<?php echo h($next_link); ?>" class="pagination-btn">Next</a>
+        <?php endif; ?>
+    </div>
+<?php endif; ?>
+
             <?php endif; ?>
         </div>
 

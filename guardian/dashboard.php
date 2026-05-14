@@ -214,6 +214,23 @@ $age_text = $child ? calculateAgeText($child['birthdate']) : 'N/A';
 $current_status = getPriorityStatusFromRecord($latest_record);
 $status_class = getStatusClass($current_status);
 $status_note = getStatusNote($current_status);
+
+$today = date('Y-m-d');
+
+$event_sql = "
+    SELECT title, event_type, event_date, start_time, end_time, location, status
+    FROM events
+    WHERE is_deleted = 0
+    AND status = 'Upcoming'
+    AND event_date >= ?
+    ORDER BY event_date ASC, start_time ASC
+    LIMIT 5
+";
+
+$event_stmt = $conn->prepare($event_sql);
+$event_stmt->bind_param("s", $today);
+$event_stmt->execute();
+$upcoming_events = $event_stmt->get_result();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -326,85 +343,153 @@ $status_note = getStatusNote($current_status);
 
             </div>
 
-            <div class="right-column">
+           <div class="right-column">
 
-                <div class="card guide-card">
-                    <div class="card-header">
-                        <h2 class="card-title">Child Health Status Guide</h2>
-                    </div>
-                    <div class="card-body">
-                        <div class="guide-list">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="event-widget-title">Upcoming Community Events</h2>
+        </div>
 
-                            <div class="guide-item">
-                                <div class="guide-title normal">Normal</div>
-                                <div class="guide-text">
-                                    Child has a healthy weight and height for age.
-                                </div>
+        <div class="card-body">
+            <?php if ($upcoming_events && $upcoming_events->num_rows > 0): ?>
+                <div class="guardian-event-list">
+                    <?php while ($event = $upcoming_events->fetch_assoc()): ?>
+                        <div class="guardian-event-item">
+
+                            <div class="guardian-event-row">
+                                <span class="event-label">Title</span>
+                                <span class="event-value event-title-value">
+                                    <?php echo htmlspecialchars($event['title']); ?>
+                                </span>
                             </div>
 
-                            <div class="guide-item">
-                                <div class="guide-title alert">Underweight</div>
-                                <div class="guide-text">
-                                    Child weighs less than expected for age and may need better regular meals.
-                                </div>
+                            <div class="guardian-event-row">
+                                <span class="event-label">Type</span>
+                                <span class="event-value">
+                                    <?php echo htmlspecialchars($event['event_type']); ?>
+                                </span>
                             </div>
 
-                            <div class="guide-item">
-                                <div class="guide-title alert">Severely Underweight</div>
-                                <div class="guide-text">
-                                    Child is far below expected weight for age and needs close attention.
-                                </div>
+                            <div class="guardian-event-row">
+                                <span class="event-label">Date</span>
+                                <span class="event-value">
+                                    <?php echo date("F d, Y", strtotime($event['event_date'])); ?>
+                                </span>
                             </div>
 
-                            <div class="guide-item">
-                                <div class="guide-title alert">Overweight</div>
-                                <div class="guide-text">
-                                    Child weighs more than expected for age and may need better food balance.
-                                </div>
+                            <div class="guardian-event-row">
+                                <span class="event-label">Time</span>
+                                <span class="event-value">
+                                    <?php
+if(!empty($event['start_time']) && !empty($event['end_time'])){
+    echo date("h:i A", strtotime($event['start_time'])) .
+    " - " .
+    date("h:i A", strtotime($event['end_time']));
+}
+elseif(!empty($event['start_time'])){
+    echo date("h:i A", strtotime($event['start_time']));
+}
+else{
+    echo "Not set";
+}
+?>
+                                </span>
                             </div>
 
-                            <div class="guide-item">
-                                <div class="guide-title alert">Obese</div>
-                                <div class="guide-text">
-                                    Child has excessive body weight for their age. This can lead to serious health issues if not managed early.
-                                </div>
-                            </div>
-
-                            <div class="guide-item">
-                                <div class="guide-title alert">Stunted</div>
-                                <div class="guide-text">
-                                    Child is shorter than normal for their age and may have delayed growth.
-                                </div>
-                            </div>
-
-                            <div class="guide-item">
-                                <div class="guide-title alert">Severely Stunted</div>
-                                <div class="guide-text">
-                                    Child is much shorter than expected for their age.
-                                </div>
-                            </div>
-
-                            <div class="guide-item">
-                                <div class="guide-title alert">Moderately Wasted</div>
-                                <div class="guide-text">
-                                    Child has low weight for their height. This may be due to recent or short-term lack of proper nutrition.
-                                </div>
-                            </div>
-
-                            <div class="guide-item">
-                                <div class="guide-title alert">Severely Wasted</div>
-                                <div class="guide-text">
-                                    Child has very low weight for their height. This is a critical condition and needs urgent care.
-                                </div>
+                            <div class="guardian-event-row">
+                                <span class="event-label">Location</span>
+                                <span class="event-value">
+                                    <?php echo !empty($event['location']) ? htmlspecialchars($event['location']) : 'Location not specified'; ?>
+                                </span>
                             </div>
 
                         </div>
+                    <?php endwhile; ?>
+                </div>
+            <?php else: ?>
+                <div class="empty-state">
+                    No upcoming community events.
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <div class="card guide-card">
+        <div class="card-header">
+            <h2 class="card-title">Child Health Status Guide</h2>
+        </div>
+        <div class="card-body">
+            <div class="guide-list">
+
+                <div class="guide-item">
+                    <div class="guide-title normal">Normal</div>
+                    <div class="guide-text">
+                        Child has a healthy weight and height for age.
+                    </div>
+                </div>
+
+                <div class="guide-item">
+                    <div class="guide-title alert">Underweight</div>
+                    <div class="guide-text">
+                        Child weighs less than expected for age and may need better regular meals.
+                    </div>
+                </div>
+
+                <div class="guide-item">
+                    <div class="guide-title alert">Severely Underweight</div>
+                    <div class="guide-text">
+                        Child is far below expected weight for age and needs close attention.
+                    </div>
+                </div>
+
+                <div class="guide-item">
+                    <div class="guide-title alert">Overweight</div>
+                    <div class="guide-text">
+                        Child weighs more than expected for age and may need better food balance.
+                    </div>
+                </div>
+
+                <div class="guide-item">
+                    <div class="guide-title alert">Obese</div>
+                    <div class="guide-text">
+                        Child has excessive body weight for their age. This can lead to serious health issues if not managed early.
+                    </div>
+                </div>
+
+                <div class="guide-item">
+                    <div class="guide-title alert">Stunted</div>
+                    <div class="guide-text">
+                        Child is shorter than normal for their age and may have delayed growth.
+                    </div>
+                </div>
+
+                <div class="guide-item">
+                    <div class="guide-title alert">Severely Stunted</div>
+                    <div class="guide-text">
+                        Child is much shorter than expected for their age.
+                    </div>
+                </div>
+
+                <div class="guide-item">
+                    <div class="guide-title alert">Moderately Wasted</div>
+                    <div class="guide-text">
+                        Child has low weight for their height. This may be due to recent or short-term lack of proper nutrition.
+                    </div>
+                </div>
+
+                <div class="guide-item">
+                    <div class="guide-title alert">Severely Wasted</div>
+                    <div class="guide-text">
+                        Child has very low weight for their height. This is a critical condition and needs urgent care.
                     </div>
                 </div>
 
             </div>
         </div>
-    <?php } ?>
+    </div>
+
+</div>
+<?php } ?>
 </div>
 
 <script>

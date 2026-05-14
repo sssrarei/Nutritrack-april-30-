@@ -659,25 +659,44 @@ $latest_wflh = !empty($latest_anthro['wflh_status']) ? $latest_anthro['wflh_stat
                         </div>
                     </div>
 
-                    <div class="mini-card">
-                        <div class="mini-card-header">Health Information</div>
-                        <div class="mini-card-body">
-                            <div class="detail-list">
-                                <?php if ($health_info) { ?>
-                                    <?php foreach ($health_info as $key => $value) { ?>
-                                        <?php if ($key !== 'child_id' && $key !== 'health_id' && $key !== 'created_at' && $key !== 'updated_at') { ?>
-                                            <div class="detail-item">
-                                                <strong><?php echo h(ucwords(str_replace('_', ' ', $key))); ?>:</strong>
-                                                <?php echo h($value !== '' ? $value : '-'); ?>
-                                            </div>
-                                        <?php } ?>
-                                    <?php } ?>
-                                <?php } else { ?>
-                                    <div class="detail-item">No health information available.</div>
-                                <?php } ?>
-                            </div>
-                        </div>
-                    </div>
+                <div class="mini-card">
+    <div class="mini-card-header">Health Information</div>
+    <div class="mini-card-body">
+        <div class="detail-list">
+
+            <div class="detail-item">
+                <strong>Vaccination Card File:</strong>
+                <?php if (!empty($health_info['vaccination_card_file_path'])) { ?>
+                    <a href="<?php echo h($health_info['vaccination_card_file_path']); ?>" target="_blank">
+                        View Attached File
+                    </a>
+                <?php } else { ?>
+                    -
+                <?php } ?>
+            </div>
+
+            <div class="detail-item">
+                <strong>Allergies:</strong> <?php echo h($health_info['allergies'] ?? '-'); ?>
+            </div>
+
+            <div class="detail-item">
+                <strong>Comorbidities:</strong> <?php echo h($health_info['comorbidities'] ?? '-'); ?>
+            </div>
+
+            <div class="detail-item">
+                <strong>Medical History File:</strong>
+                <?php if (!empty($health_info['medical_history_file_path'])) { ?>
+                    <a href="<?php echo h($health_info['medical_history_file_path']); ?>" target="_blank">
+                        View Attached File
+                    </a>
+                <?php } else { ?>
+                    -
+                <?php } ?>
+            </div>
+
+        </div>
+    </div>
+</div>
 
                     <div class="mini-card">
                         <div class="mini-card-header">Latest Nutritional Status</div>
@@ -708,6 +727,15 @@ $latest_wflh = !empty($latest_anthro['wflh_status']) ? $latest_anthro['wflh_stat
                                 <div class="detail-item">
                                     <strong>MUAC:</strong> <?php echo h($latest_anthro['muac'] ?? '-'); ?>
                                 </div>
+                                <div class="detail-item">
+    <strong>Edema:</strong> <?php echo h($latest_anthro['edema_status'] ?? '-'); ?>
+</div>
+<div class="detail-item">
+    <strong>Grade:</strong> <?php echo h($latest_anthro['edema_grade'] ?? '-'); ?>
+</div>
+<div class="detail-item">
+    <strong>MUAC Status:</strong> <?php echo h($latest_anthro['muac_status'] ?? '-'); ?>
+</div>
                             </div>
                         </div>
                     </div>
@@ -728,6 +756,9 @@ $latest_wflh = !empty($latest_anthro['wflh_status']) ? $latest_anthro['wflh_stat
                                     <th>Height</th>
                                     <th>Weight</th>
                                     <th>MUAC</th>
+                                    <th>Edema</th>
+                                    <th>Grade</th>
+                                    <th>MUAC Status</th>
                                     <th>WFA</th>
                                     <th>HFA</th>
                                     <th>WFL/H</th>
@@ -741,6 +772,9 @@ $latest_wflh = !empty($latest_anthro['wflh_status']) ? $latest_anthro['wflh_stat
                                         <td><?php echo h($row['height'] ?? '-'); ?></td>
                                         <td><?php echo h($row['weight'] ?? '-'); ?></td>
                                         <td><?php echo h($row['muac'] ?? '-'); ?></td>
+                                        <td><?php echo h($row['edema_status'] ?? '-'); ?></td>
+                                        <td><?php echo h($row['edema_grade'] ?? '-'); ?></td>
+                                        <td><?php echo h($row['muac_status'] ?? '-'); ?></td>
                                         <td class="<?php echo h(status_class($row['wfa_status'] ?? '')); ?>"><?php echo h($row['wfa_status'] ?? '-'); ?></td>
                                         <td class="<?php echo h(status_class($row['hfa_status'] ?? '')); ?>"><?php echo h($row['hfa_status'] ?? '-'); ?></td>
                                         <td class="<?php echo h(status_class($row['wflh_status'] ?? '')); ?>"><?php echo h($row['wflh_status'] ?? '-'); ?></td>

@@ -146,6 +146,7 @@ function extract_report_rows($payload)
     }
 
     $candidate_keys = [
+        'submitted_rows',
         'rows',
         'report_rows',
         'records',
@@ -630,12 +631,54 @@ if ($status === 'submitted') {
                                     $endline_hfa = get_first_existing_value($row, ['endline_hfa_status', 'endline_hfa'], 'N/A');
                                     $endline_wflh = get_first_existing_value($row, ['endline_wflh_status', 'endline_wflh', 'endline_wfh_status', 'endline_wfh'], 'N/A');
 
-                                    $improvement = get_first_existing_value($row, [
-                                        'improvement',
-                                        'improvement_assessment',
-                                        'overall_assessment',
-                                        'remarks'
-                                    ], 'N/A');
+                                   $normal_statuses = ['Normal', 'Tall'];
+
+                                    $problem_statuses = [
+                                        'Underweight',
+                                        'Wasted',
+                                        'Overweight',
+                                        'Stunted',
+                                        'Moderately Wasted'
+                                    ];
+
+                                    $severe_statuses = [
+                                        'Severely Underweight',
+                                        'Severely Wasted',
+                                        'Severely Stunted',
+                                        'Obese'
+                                    ];
+
+                                    $all_problem_statuses = array_merge($problem_statuses, $severe_statuses);
+
+                                    $baseline_normal =
+                                        in_array($baseline_wfa, $normal_statuses) &&
+                                        in_array($baseline_hfa, $normal_statuses) &&
+                                        in_array($baseline_wflh, $normal_statuses);
+
+                                    $endline_normal =
+                                        in_array($endline_wfa, $normal_statuses) &&
+                                        in_array($endline_hfa, $normal_statuses) &&
+                                        in_array($endline_wflh, $normal_statuses);
+
+                                    $baseline_has_problem =
+                                        in_array($baseline_wfa, $all_problem_statuses) ||
+                                        in_array($baseline_hfa, $all_problem_statuses) ||
+                                        in_array($baseline_wflh, $all_problem_statuses);
+
+                                    $endline_has_problem =
+                                        in_array($endline_wfa, $all_problem_statuses) ||
+                                        in_array($endline_hfa, $all_problem_statuses) ||
+                                        in_array($endline_wflh, $all_problem_statuses);
+
+                                    if ($baseline_has_problem && $endline_normal) {
+                                        $improvement = 'Improved';
+                                    }
+                                    elseif ($baseline_normal && $endline_has_problem) {
+                                        $improvement = 'Worsened';
+                                    }
+                                    else {
+                                        $improvement = 'No Change';
+                                    }
                                 ?>
                                 <tr>
                                     <td><?php echo (int)($index + 1); ?></td>

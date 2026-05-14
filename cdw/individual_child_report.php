@@ -70,16 +70,36 @@ function status_class($status)
 {
     $status = strtolower(trim((string) $status));
 
-    if ($status === 'normal') return 'status-normal';
-    if ($status === 'underweight') return 'status-underweight';
-    if ($status === 'severely underweight') return 'status-severe';
-    if ($status === 'overweight') return 'status-overweight';
-    if ($status === 'obese') return 'status-obese';
-    if ($status === 'stunted') return 'status-stunted';
-    if ($status === 'severely stunted') return 'status-severe';
-    if ($status === 'moderately wasted') return 'status-wasted';
-    if ($status === 'wasted') return 'status-wasted';
-    if ($status === 'severely wasted') return 'status-severe';
+    if ($status === '' || $status === '--') {
+        return 'status-default';
+    }
+
+    if (
+        $status === 'normal' ||
+        strpos($status, 'green zone') !== false
+    ) {
+        return 'status-normal';
+    }
+
+    if (
+        strpos($status, 'moderate') !== false ||
+        strpos($status, 'yellow zone') !== false ||
+        $status === 'underweight' ||
+        $status === 'wasted' ||
+        $status === 'stunted' ||
+        $status === 'tall' ||
+        $status === 'overweight'
+    ) {
+        return 'status-warning';
+    }
+
+    if (
+        strpos($status, 'severe') !== false ||
+        strpos($status, 'red zone') !== false ||
+        $status === 'obese'
+    ) {
+        return 'status-severe';
+    }
 
     return 'status-default';
 }
@@ -448,9 +468,11 @@ $latest_sql = "
         height,
         weight,
         muac,
+        edema_status,
+        edema_grade,
+        muac_status,
         date_recorded,
         age_months,
-        place_of_measurement,
         assessment_type,
         wfa_status,
         hfa_status,
@@ -551,7 +573,9 @@ $anthro_sql = "
         height,
         weight,
         muac,
-        place_of_measurement,
+        edema_status,
+        edema_grade,
+        muac_status,
         assessment_type,
         wfa_status,
         hfa_status,
@@ -831,12 +855,29 @@ mysqli_stmt_close($stmt_deworm);
             <div class="table-wrap">
                 <table class="report-table">
                     <tbody>
-                        <tr>
-                            <th>Vaccination Card File</th>
-                            <td><?php echo h(safe_value($child['vaccination_card_file_path'])); ?></td>
-                            <th>Medical History File</th>
-                            <td><?php echo h(safe_value($child['medical_history_file_path'])); ?></td>
-                        </tr>
+                       <tr>
+    <th>Vaccination Card File</th>
+    <td>
+        <?php if (!empty($child['vaccination_card_file_path'])): ?>
+            <a href="<?php echo h($child['vaccination_card_file_path']); ?>" target="_blank" class="file-link">
+                View Vaccination Card
+            </a>
+        <?php else: ?>
+            N/A
+        <?php endif; ?>
+    </td>
+
+    <th>Medical History File</th>
+    <td>
+        <?php if (!empty($child['medical_history_file_path'])): ?>
+            <a href="<?php echo h($child['medical_history_file_path']); ?>" target="_blank" class="file-link">
+                View Medical History File
+            </a>
+        <?php else: ?>
+            N/A
+        <?php endif; ?>
+    </td>
+</tr>
                         <tr>
                             <th>Allergies</th>
                             <td colspan="3"><?php echo h(safe_value($child['allergies'])); ?></td>
@@ -885,8 +926,14 @@ mysqli_stmt_close($stmt_deworm);
                                 <td><?php echo h(safe_value($latest_record['assessment_type'])); ?></td>
                             </tr>
                             <tr>
-                                <th>Place of Measurement</th>
-                                <td><?php echo h(safe_value($latest_record['place_of_measurement'])); ?></td>
+                                <th>Edema</th>
+                                <td><?php echo h(safe_value($latest_record['edema_status'])); ?></td>
+                                <th>Grade</th>
+                                <td><?php echo h(safe_value($latest_record['edema_grade'], '--')); ?></td>
+                            </tr>
+                            <tr>
+                                <th>MUAC Status</th>
+                                <td><?php echo h(safe_value($latest_record['muac_status'], '--')); ?></td>
                                 <th>Latest Monitoring Date</th>
                                 <td><?php echo h(date('F d, Y', strtotime($latest_record['date_recorded']))); ?></td>
                             </tr>
@@ -906,6 +953,10 @@ mysqli_stmt_close($stmt_deworm);
                     <div class="status-pill <?php echo h(status_class($latest_record['wflh_status'])); ?>">
                         <span class="pill-label">WFL/H</span>
                         <span class="pill-value"><?php echo h(safe_value($latest_record['wflh_status'])); ?></span>
+                    </div>
+                    <div class="status-pill <?php echo h(status_class($latest_record['muac_status'])); ?>">
+                        <span class="pill-label">MUAC Status</span>
+                        <span class="pill-value"><?php echo h(safe_value($latest_record['muac_status'], '--')); ?></span>
                     </div>
                 </div>
             <?php else: ?>
@@ -929,6 +980,9 @@ mysqli_stmt_close($stmt_deworm);
                                 <th>Height</th>
                                 <th>Weight</th>
                                 <th>MUAC</th>
+                                <th>Edema</th>
+                                <th>Grade</th>
+                                <th>MUAC Status</th>
                                 <th>WFA</th>
                                 <th>HFA</th>
                                 <th>WFL/H</th>
@@ -942,6 +996,9 @@ mysqli_stmt_close($stmt_deworm);
                                     <td><?php echo h(safe_value($row['height'])); ?> cm</td>
                                     <td><?php echo h(safe_value($row['weight'])); ?> kg</td>
                                     <td><?php echo h(safe_value($row['muac'])); ?> cm</td>
+                                    <td><?php echo h(safe_value($row['edema_status'], '--')); ?></td>
+                                    <td><?php echo h(safe_value($row['edema_grade'], '--')); ?></td>
+                                    <td><?php echo h(safe_value($row['muac_status'], '--')); ?></td>
                                     <td><?php echo h(safe_value($row['wfa_status'])); ?></td>
                                     <td><?php echo h(safe_value($row['hfa_status'])); ?></td>
                                     <td><?php echo h(safe_value($row['wflh_status'])); ?></td>

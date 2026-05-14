@@ -36,6 +36,11 @@
            User Management
         </a>
 
+         <a href="manage_events.php"
+         class="sidebar-sublink <?php echo in_array($current_page, ['manage_events.php','create_event.php','edit_event.php']) ? 'active' : ''; ?>">
+         Event Planner
+         </a>
+
         <div class="sidebar-title">Notifications</div>
 
         <a href="create_reminder.php"

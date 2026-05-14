@@ -689,3 +689,30 @@ body.dark-mode .empty-state{
 .notif-dropdown::-webkit-scrollbar-thumb:hover {
     background: #94a3b8;
 }
+
+.status-warning {
+    background: #f39c12;
+    color: #ffffff;
+}
+
+.status-severe {
+    background: #a00000;
+    color: #ffffff;
+}
+
+.file-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: #e8f5e9;
+    color: #2e7d32;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.file-link:hover {
+    background: #c8e6c9;
+}

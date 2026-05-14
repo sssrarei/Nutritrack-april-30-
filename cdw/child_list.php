@@ -247,7 +247,7 @@ $child_result = $child_stmt->get_result();
         }
 
         .btn-view{
-            background:#3498db;
+            background:#2E7D32;
             color:#fff;
             padding:9px 14px;
             font-size:13px;
