@@ -1084,6 +1084,6 @@ function toggleSidebar() {
 
 renderMealInputsForAllChildren();
 </script>
-
+<script src="../assets/cdw/sidebar.js"></script>
 </body>
 </html>

@@ -4,45 +4,40 @@ document.addEventListener('DOMContentLoaded', function () {
     const sidebarOverlay = document.getElementById('sidebarOverlay');
     const mainContent = document.getElementById('mainContent');
 
-    function handleDesktopToggle() {
-        sidebar.classList.toggle('hidden');
-        mainContent.classList.toggle('full');
-        document.body.classList.toggle('sidebar-collapsed');
-    }
-
-    function handleMobileToggle() {
-        sidebar.classList.toggle('show');
-        sidebarOverlay.classList.toggle('show');
-    }
-
-    if (menuToggle && sidebar) {
+    if (menuToggle && sidebar && mainContent) {
         menuToggle.addEventListener('click', function () {
             if (window.innerWidth <= 991) {
-                handleMobileToggle();
+                sidebar.classList.toggle('show');
+                sidebar.classList.toggle('open');
+
+                if (sidebarOverlay) {
+                    sidebarOverlay.classList.toggle('show');
+                }
             } else {
-                handleDesktopToggle();
+                sidebar.classList.toggle('closed');
+                mainContent.classList.toggle('full');
+                document.body.classList.toggle('sidebar-collapsed');
             }
         });
     }
 
-    if (sidebarOverlay) {
+    if (sidebarOverlay && sidebar) {
         sidebarOverlay.addEventListener('click', function () {
             sidebar.classList.remove('show');
+            sidebar.classList.remove('open');
             sidebarOverlay.classList.remove('show');
-
-
         });
     }
-        /* SAVE SIDEBAR SCROLL POSITION */
+
     if (sidebar) {
-        const savedScroll = localStorage.getItem('sidebarScroll');
+        const savedScroll = localStorage.getItem('cdwSidebarScroll');
 
         if (savedScroll !== null) {
             sidebar.scrollTop = parseInt(savedScroll, 10);
         }
 
         sidebar.addEventListener('scroll', function () {
-            localStorage.setItem('sidebarScroll', sidebar.scrollTop);
+            localStorage.setItem('cdwSidebarScroll', sidebar.scrollTop);
         });
     }
 });

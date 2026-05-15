@@ -21,45 +21,56 @@ function decodeReportPayload($payload) {
     return [];
 }
 
-function determineFinalInterventionCategory($wfa_status, $wflh_status) {
-    $candidates = [];
+function getFinalRiskStatus($wfa_status, $hfa_status, $wflh_status) {
+    $statuses = array(
+        trim((string)$wfa_status),
+        trim((string)$hfa_status),
+        trim((string)$wflh_status)
+    );
 
-    $mapped_wfa = mapToInterventionCategory(trim((string)$wfa_status));
-    $mapped_wflh = mapToInterventionCategory(trim((string)$wflh_status));
+    $priority_order = array(
+        'Severely Wasted',
+        'Severely Underweight',
+        'Severely Stunted',
+        'Moderately Wasted',
+        'Underweight',
+        'Stunted',
+        'Obese',
+        'Overweight',
+        'Normal'
+    );
 
-    if ($mapped_wfa !== null) {
-        $candidates[] = $mapped_wfa;
-    }
-
-    if ($mapped_wflh !== null) {
-        $candidates[] = $mapped_wflh;
-    }
-
-    if (empty($candidates)) {
-        return null;
-    }
-
-    $priority = [
-        'Overweight' => 1,
-        'Moderately Wasted' => 2,
-        'Obese' => 3,
-        'Severely Wasted' => 4
-    ];
-
-    $final_category = null;
-    $highest_priority = 0;
-
-    foreach ($candidates as $candidate) {
-        $candidate_priority = isset($priority[$candidate]) ? $priority[$candidate] : 0;
-
-        if ($candidate_priority > $highest_priority) {
-            $highest_priority = $candidate_priority;
-            $final_category = $candidate;
+    foreach ($priority_order as $priority_status) {
+        if (in_array($priority_status, $statuses, true)) {
+            return $priority_status;
         }
     }
 
-    return $final_category;
+    return 'Normal';
 }
+
+function determineFinalInterventionCategory($wfa_status, $hfa_status, $wflh_status) {
+    $final_status = getFinalRiskStatus($wfa_status, $hfa_status, $wflh_status);
+
+    if ($final_status === 'Underweight' || $final_status === 'Moderately Wasted') {
+        return 'Moderately Wasted';
+    }
+
+    if ($final_status === 'Severely Underweight' || $final_status === 'Severely Wasted') {
+        return 'Severely Wasted';
+    }
+
+    if ($final_status === 'Overweight') {
+        return 'Overweight';
+    }
+
+    if ($final_status === 'Obese') {
+        return 'Obese';
+    }
+
+    return null;
+}
+   
 
 function getLatestSubmittedWMRRowsPerCDC($conn, $selected_cdc = 0) {
     $sql = "SELECT submitted_report_id, cdc_id, submitted_at, report_payload
@@ -127,8 +138,9 @@ function getChildSubmittedWMRHistory($conn, $child_id, $cdc_id) {
                 continue;
             }
 
-            $final_category = determineFinalInterventionCategory(
+          $final_category = determineFinalInterventionCategory(
                 isset($row['wfa_status']) ? $row['wfa_status'] : '',
+                isset($row['hfa_status']) ? $row['hfa_status'] : '',
                 isset($row['wflh_status']) ? $row['wflh_status'] : ''
             );
 
@@ -179,6 +191,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         foreach ($latest_wmr_rows as $row) {
             $final_category = determineFinalInterventionCategory(
                 isset($row['wfa_status']) ? $row['wfa_status'] : '',
+                isset($row['hfa_status']) ? $row['hfa_status'] : '',
                 isset($row['wflh_status']) ? $row['wflh_status'] : ''
             );
 
@@ -363,6 +376,7 @@ $count_ob = 0;
 foreach ($latest_wmr_rows as $row) {
     $final_category = determineFinalInterventionCategory(
         isset($row['wfa_status']) ? $row['wfa_status'] : '',
+        isset($row['hfa_status']) ? $row['hfa_status'] : '',
         isset($row['wflh_status']) ? $row['wflh_status'] : ''
     );
 

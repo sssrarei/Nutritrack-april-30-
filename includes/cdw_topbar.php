@@ -52,7 +52,7 @@ if ($user_id > 0) {
 
 <div class="topbar">
     <div class="topbar-left">
-        <button class="menu-toggle" onclick="toggleSidebar()" type="button" aria-label="Toggle Menu">
+            <button class="menu-toggle" id="menuToggle" type="button" aria-label="Toggle Menu">
             <span></span>
             <span></span>
             <span></span>

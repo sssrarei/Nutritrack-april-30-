@@ -737,25 +737,9 @@ new Chart(document.getElementById('nutriChart'), {
     }
 });
 
-function toggleSidebar() {
-    var sidebar = document.getElementById('sidebar');
-    var overlay = document.getElementById('sidebarOverlay');
-    var mainContent = document.getElementById('mainContent');
 
-    if (window.innerWidth <= 991) {
-        sidebar.classList.toggle('open');
-        overlay.classList.toggle('show');
-    } else {
-        sidebar.classList.toggle('closed');
-        mainContent.classList.toggle('full');
-    }
-}
 
-function closeSidebar() {
-    document.getElementById('sidebar').classList.remove('open');
-    document.getElementById('sidebarOverlay').classList.remove('show');
-}
 </script>
-
+<script src="../assets/cdw/sidebar.js"></script>
 </body>
 </html>

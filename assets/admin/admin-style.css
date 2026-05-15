@@ -951,3 +951,14 @@ a{
     font-weight:700;
     border:1px solid #e2e8f0;
 }
+
+body.sidebar-collapsed .main-content{
+    margin-left:0 !important;
+    width:100% !important;
+    max-width:100% !important;
+}
+
+body.sidebar-collapsed .dashboard-wrapper{
+    border-left:none !important;
+    padding-left:0 !important;
+}

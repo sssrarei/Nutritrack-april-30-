@@ -667,7 +667,7 @@ if ($stmt) {
     </div>
 </div>
 
-
+<script src="../assets/admin/sidebar.js"></script>
 
 </body>
 </html>

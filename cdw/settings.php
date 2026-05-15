@@ -601,6 +601,6 @@ themeToggle.addEventListener('change', function () {
     }
 });
 </script>
-
+<script src="../assets/cdw/sidebar.js"></script>
 </body>
 </html>

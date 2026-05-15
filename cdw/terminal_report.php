@@ -477,6 +477,6 @@ function closeSidebar() {
     document.getElementById('sidebarOverlay').classList.remove('show');
 }
 </script>
-
+<script src="../assets/cdw/sidebar.js"></script>
 </body>
 </html>

@@ -536,6 +536,6 @@ function closeSidebar() {
     localStorage.setItem("cdw_sidebar_hidden", "true");
 }
 </script>
-
+<script src="../assets/cdw/sidebar.js"></script>
 </body>
 </html>

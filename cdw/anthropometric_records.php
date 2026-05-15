@@ -894,17 +894,7 @@ if($child_id > 0){
 </div>
 
 <script>
-function toggleSidebar() {
-    var sidebar = document.getElementById('sidebar');
-    var mainContent = document.getElementById('mainContent');
 
-    if (window.innerWidth <= 991) {
-        sidebar.classList.toggle('open');
-    } else {
-        sidebar.classList.toggle('closed');
-        mainContent.classList.toggle('full');
-    }
-}
 
 document.addEventListener('DOMContentLoaded', function(){
 
@@ -929,6 +919,6 @@ document.addEventListener('DOMContentLoaded', function(){
 });
 
 </script>
-
+<script src="../assets/cdw/sidebar.js"></script>
 </body>
 </html>

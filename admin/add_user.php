@@ -446,6 +446,6 @@ if ($search != "") {
     }
 </script>
 
-
+<script src="../assets/admin/sidebar.js"></script>
 </body>
 </html>

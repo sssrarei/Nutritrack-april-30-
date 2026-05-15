@@ -796,6 +796,6 @@ function closeSidebar() {
     }
 }
 </script>
-
+<script src="../assets/cdw/sidebar.js"></script>
 </body>
 </html>

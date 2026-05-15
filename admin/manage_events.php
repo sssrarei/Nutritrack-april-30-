@@ -73,13 +73,14 @@ function formatTime($time) {
     <meta charset="UTF-8">
     <title>Event Planner</title>
     <link rel="stylesheet" href="../assets/admin/admin-style.css">
+
 </head>
 <body>
 
 <?php include '../includes/admin_topbar.php'; ?>
 <?php include '../includes/admin_sidebar.php'; ?>
 
-<main class="main-content">
+<main class="main-content" id="mainContent">
     <div class="records-page-shell">
 
         <div class="records-page-header">
